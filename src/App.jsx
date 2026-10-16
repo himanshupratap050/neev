@@ -5,6 +5,7 @@ import Signup from './pages/Signup'
 import Login from './pages/Login'
 import PostRequirement from './pages/PostRequirement'
 import { useAuth } from './context/AuthContext'
+import ProviderLeads from './pages/ProviderLeads'
 
 function Home() {
   const { user, profile, loading } = useAuth()
@@ -34,6 +35,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<Signup />} />
         <Route path="/post" element={<ProtectedRoute role="customer"><PostRequirement /></ProtectedRoute>} />
+        <Route path="/leads" element={<ProtectedRoute role="provider"><ProviderLeads /></ProtectedRoute>} />
       </Routes>
     </>
   )
