@@ -10,6 +10,7 @@ export default function Navbar() {
             <div className="flex items-center gap-4 text-sm font-semibold">
                 {profile?.role === 'customer' && <Link to="/post">Requirement daalein</Link>}
                 {profile?.role === 'provider' && <Link to="/leads">Leads</Link>}
+                {profile?.role === 'customer' && <Link to="/my-requests">Meri requests</Link>}
                 {user ? (
                     <button onClick={() => supabase.auth.signOut()}>Logout</button>
                 ) : (
