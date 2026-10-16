@@ -11,6 +11,7 @@ export default function Navbar() {
                 {profile?.role === 'customer' && <Link to="/post">Requirement daalein</Link>}
                 {profile?.role === 'provider' && <Link to="/leads">Leads</Link>}
                 {profile?.role === 'customer' && <Link to="/my-requests">Meri requests</Link>}
+                {profile?.role === 'admin' && <Link to="/admin">Admin</Link>}
                 {user ? (
                     <button onClick={() => supabase.auth.signOut()}>Logout</button>
                 ) : (
