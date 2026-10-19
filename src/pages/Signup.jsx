@@ -1,9 +1,20 @@
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
+import { User, Store } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { Page, Card, Input, Select, Button } from '../components/ui'
 
 const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Aggregate']
+
+function Field({ label, children }) {
+    return (
+        <label className="block text-sm font-semibold">
+            {label}
+            <div className="mt-1">{children}</div>
+        </label>
+    )
+}
 
 export default function Signup() {
     const navigate = useNavigate()
@@ -23,12 +34,11 @@ export default function Signup() {
         setBusy(true)
 
         const { data, error: authErr } = await supabase.auth.signUp({
-            email: form.email,
-            password: form.password,
+            email: form.email, password: form.password,
         })
         if (authErr) { setError(authErr.message); setBusy(false); return }
         if (!data.session) {
-            setError('Email confirmation abhi ON hai. Supabase mein Confirm email OFF kar.')
+            setError('Email confirmation is still enabled in Supabase. Turn off "Confirm email" for testing.')
             setBusy(false); return
         }
 
@@ -51,48 +61,78 @@ export default function Signup() {
         navigate('/')
     }
 
-    const input = 'w-full rounded-xl border border-slate-300 px-4 py-3 text-base bg-white'
+    const roles = [
+        { value: 'customer', label: 'Customer', hint: 'I need materials or fabrication work', icon: User },
+        { value: 'provider', label: 'Provider', hint: 'I run a store or workshop', icon: Store },
+    ]
 
     return (
-        <div className="min-h-screen bg-slate-50 px-4 py-8">
-            <form onSubmit={submit} className="mx-auto max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
-                <h1 className="text-2xl font-bold text-slate-brand">Account banayein / Sign up</h1>
-
+        <Page title="Create your account" subtitle="Join NEEV in a minute">
+            <form onSubmit={submit} className="space-y-4">
                 <div className="grid grid-cols-2 gap-3">
-                    {['customer', 'provider'].map((r) => (
-                        <button
-                            type="button" key={r}
-                            onClick={() => setForm({ ...form, role: r })}
-                            className={`rounded-xl border px-4 py-3 font-semibold ${form.role === r ? 'bg-amber-brand text-white border-amber-brand' : 'bg-white text-slate-brand border-slate-300'
-                                }`}
-                        >
-                            {r === 'customer' ? 'Customer (Grahak)' : 'Provider (Dukaan/Karigar)'}
-                        </button>
-                    ))}
+                    {roles.map(({ value, label, hint, icon: Icon }) => {
+                        const on = form.role === value
+                        return (
+                            <button
+                                type="button" key={value}
+                                onClick={() => setForm({ ...form, role: value })}
+                                className={`rounded-2xl border-2 p-4 text-left transition ${on ? 'border-amber-brand bg-amber-50' : 'border-slate-200 bg-white'
+                                    }`}
+                            >
+                                <Icon className={`mb-2 h-6 w-6 ${on ? 'text-amber-brand' : 'text-muted'}`} />
+                                <p className="font-semibold">{label}</p>
+                                <p className="text-xs text-muted">{hint}</p>
+                            </button>
+                        )
+                    })}
                 </div>
 
-                <input className={input} placeholder="Naam / Name" value={form.name} onChange={set('name')} required />
-                <input className={input} placeholder="Phone number" value={form.phone} onChange={set('phone')} required />
-                <input className={input} placeholder="Sheher / City (jaise Siwan)" value={form.city} onChange={set('city')} required />
-                <input className={input} type="email" placeholder="Email" value={form.email} onChange={set('email')} required />
-                <input className={input} type="password" placeholder="Password (min 6 akshar)" value={form.password} onChange={set('password')} minLength={6} required />
+                <Card className="space-y-4">
+                    <Field label="Full name">
+                        <Input value={form.name} onChange={set('name')} required />
+                    </Field>
+                    <Field label="Phone number">
+                        <Input type="tel" inputMode="numeric" value={form.phone} onChange={set('phone')} required />
+                    </Field>
+                    <Field label="City">
+                        <Input placeholder="e.g. Siwan" value={form.city} onChange={set('city')} required />
+                    </Field>
+                    <Field label="Email">
+                        <Input type="email" value={form.email} onChange={set('email')} required />
+                    </Field>
+                    <Field label="Password (minimum 6 characters)">
+                        <Input type="password" minLength={6} value={form.password} onChange={set('password')} required />
+                    </Field>
+                </Card>
 
                 {form.role === 'provider' && (
-                    <>
-                        <input className={input} placeholder="Dukaan / Shop ka naam" value={form.shop_name} onChange={set('shop_name')} required />
-                        <select className={input} value={form.category} onChange={set('category')}>
-                            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-                        </select>
-                        <input className={input} placeholder="Pincode" value={form.pincode} onChange={set('pincode')} required />
-                    </>
+                    <Card className="space-y-4">
+                        <p className="font-semibold">Business details</p>
+                        <Field label="Shop or workshop name">
+                            <Input value={form.shop_name} onChange={set('shop_name')} required />
+                        </Field>
+                        <Field label="Primary category">
+                            <Select value={form.category} onChange={set('category')}>
+                                {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                            </Select>
+                        </Field>
+                        <Field label="Pincode">
+                            <Input inputMode="numeric" value={form.pincode} onChange={set('pincode')} required />
+                        </Field>
+                        <p className="text-xs text-muted">
+                            Our team will verify your details. Once approved, you will receive a "Verified" badge.
+                        </p>
+                    </Card>
                 )}
 
-                {error && <p className="text-red-600 text-sm">{error}</p>}
-
-                <button disabled={busy} className="w-full rounded-xl bg-amber-brand py-3 text-lg font-bold text-white disabled:opacity-60">
-                    {busy ? 'Ruko...' : 'Sign up'}
-                </button>
+                {error && <p className="text-sm text-red-600">{error}</p>}
+                <Button disabled={busy}>{busy ? 'Creating account...' : 'Sign up'}</Button>
             </form>
-        </div>
+
+            <p className="text-center text-sm text-muted">
+                Already have an account?{' '}
+                <Link to="/login" className="font-semibold text-blue-brand">Log in</Link>
+            </p>
+        </Page>
     )
 }

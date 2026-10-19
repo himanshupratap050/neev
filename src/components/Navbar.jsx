@@ -8,8 +8,8 @@ export default function Navbar() {
 
     const links = [{ to: '/', label: 'Home', icon: Home }]
     if (profile?.role === 'customer') {
-        links.push({ to: '/post', label: 'Requirement', icon: PlusCircle })
-        links.push({ to: '/my-requests', label: 'Meri requests', icon: ClipboardList })
+        links.push({ to: '/post', label: 'Post Request', icon: PlusCircle })
+        links.push({ to: '/my-requests', label: 'My Requests', icon: ClipboardList })
     }
     if (profile?.role === 'provider') links.push({ to: '/leads', label: 'Leads', icon: Inbox })
     if (profile?.role === 'admin') links.push({ to: '/admin', label: 'Admin', icon: ShieldCheck })
@@ -33,10 +33,10 @@ export default function Navbar() {
 
                     {user ? (
                         <button onClick={() => supabase.auth.signOut()} className="flex items-center gap-1 text-sm font-semibold text-slate-300">
-                            <LogOut className="h-4 w-4" /> Logout
+                            <LogOut className="h-4 w-4" /> Log out
                         </button>
                     ) : (
-                        <Link to="/login" className="rounded-lg bg-amber-brand px-4 py-2 text-sm font-semibold">Login</Link>
+                        <Link to="/login" className="rounded-lg bg-amber-brand px-4 py-2 text-sm font-semibold">Log in</Link>
                     )}
                 </div>
             </header>
