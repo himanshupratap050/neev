@@ -33,14 +33,11 @@ export default function MyRequests() {
 
     useEffect(() => { load() }, [])
 
-    async function accept(req, quote) {
+    async function accept(quote) {
         if (!window.confirm(`Accept the quote of ₹${quote.price} from ${quote.providers?.shop_name}?`)) return
         setError('')
-        const a = await supabase.from('quotes').update({ status: 'accepted' }).eq('id', quote.id)
-        if (a.error) { setError(a.error.message); return }
-        await supabase.from('quotes').update({ status: 'rejected' }).eq('request_id', req.id).neq('id', quote.id)
-        const r = await supabase.from('requests').update({ status: 'accepted' }).eq('id', req.id)
-        if (r.error) { setError(r.error.message); return }
+        const { error } = await supabase.rpc('accept_quote', { p_quote_id: quote.id })
+        if (error) { setError(error.message); return }
         load()
     }
 
@@ -117,7 +114,7 @@ export default function MyRequests() {
                                                     <p className="text-xl font-bold">₹{q.price}</p>
                                                 </div>
                                                 {q.message && <p className="mt-2 text-sm text-muted">{q.message}</p>}
-                                                <Button className="mt-3" onClick={() => accept(r, q)}>Accept quote</Button>
+                                                <Button className="mt-3" onClick={() => accept(q)}>Accept quote</Button>
                                             </div>
                                         ))}
                                     </div>
