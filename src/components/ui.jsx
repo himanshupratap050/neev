@@ -70,3 +70,45 @@ export function Empty({ icon: Icon, text }) {
 export function Spinner() {
     return <p className="p-6 text-center text-muted">Loading...</p>
 }
+
+export function Field({ label, children }) {
+    return (
+        <label className="block text-sm font-semibold">
+            {label}
+            <div className="mt-1">{children}</div>
+        </label>
+    )
+}
+
+export function StatusBadge({ status }) {
+    const map = {
+        open: ['blue', 'Open'],
+        accepted: ['amber', 'In progress'],
+        completed: ['green', 'Completed'],
+        sent: ['gray', 'Quote sent'],
+        rejected: ['gray', 'Not selected'],
+    }
+    const [tone, label] = map[status] ?? ['gray', status]
+    return <Badge tone={tone}>{label}</Badge>
+}
+
+export function Facts({ items }) {
+    const shown = items.filter((i) => i.value)
+    return (
+        <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 border-t border-slate-100 pt-3 text-sm">
+            {shown.map((i) => (
+                <div key={i.label}>
+                    <dt className="text-xs text-muted">{i.label}</dt>
+                    <dd className="font-medium">{i.value}</dd>
+                </div>
+            ))}
+        </dl>
+    )
+}
+
+export function timeAgo(iso) {
+    const s = Math.floor((Date.now() - new Date(iso).getTime()) / 1000)
+    if (s < 3600) return `${Math.max(1, Math.floor(s / 60))} min ago`
+    if (s < 86400) return `${Math.floor(s / 3600)} h ago`
+    return `${Math.floor(s / 86400)} d ago`
+}

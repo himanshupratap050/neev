@@ -1,14 +1,16 @@
 import { useEffect, useState } from 'react'
+import { ShieldCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
+import { Page, Card, Button, Badge, Facts, Empty, Spinner } from '../components/ui'
 
 export default function Admin() {
     const [rows, setRows] = useState([])
+    const [filter, setFilter] = useState('pending')
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
 
     async function load() {
-        const { data: provs, error } = await supabase
-            .from('providers').select('*').order('verified', { ascending: true })
+        const { data: provs, error } = await supabase.from('providers').select('*')
         if (error) { setError(error.message); setLoading(false); return }
 
         const ids = (provs ?? []).map((p) => p.id)
@@ -24,52 +26,58 @@ export default function Admin() {
 
     async function toggle(p) {
         setError('')
-        const { error } = await supabase
-            .from('providers').update({ verified: !p.verified }).eq('id', p.id)
+        const { error } = await supabase.from('providers').update({ verified: !p.verified }).eq('id', p.id)
         if (error) { setError(error.message); return }
         load()
     }
 
-    if (loading) return <p className="p-6">Loading...</p>
+    if (loading) return <Spinner />
+
+    const pending = rows.filter((r) => !r.verified).length
+    const shown = rows.filter((r) =>
+        filter === 'all' ? true : filter === 'pending' ? !r.verified : r.verified)
+
+    const tabs = [
+        { key: 'pending', label: `Pending (${pending})` },
+        { key: 'verified', label: `Verified (${rows.length - pending})` },
+        { key: 'all', label: 'All' },
+    ]
 
     return (
-        <div className="min-h-screen bg-slate-50 px-4 py-6">
-            <div className="mx-auto max-w-md space-y-4">
-                <h1 className="text-2xl font-bold text-slate-brand">Admin: Providers</h1>
-                <p className="text-sm text-slate-500">
-                    Verify karne se pehle phone karke dukaan/kaam confirm kar lein.
-                </p>
-                {error && <p className="text-sm text-red-600">{error}</p>}
-
-                {rows.length === 0 && (
-                    <p className="rounded-2xl border border-slate-200 bg-white p-6 text-slate-500">
-                        Abhi koi provider nahi hai.
-                    </p>
-                )}
-
-                {rows.map((p) => (
-                    <div key={p.id} className="rounded-2xl border border-slate-200 bg-white p-4">
-                        <div className="flex items-start justify-between gap-2">
-                            <div>
-                                <p className="font-semibold text-slate-brand">{p.shop_name}</p>
-                                <p className="text-sm text-slate-500">{p.category} · {p.city} · {p.pincode}</p>
-                                <p className="text-sm">{p.profile?.name} · {p.profile?.phone}</p>
-                            </div>
-                            <span className={`shrink-0 rounded-full px-3 py-1 text-xs font-semibold ${p.verified ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'
-                                }`}>
-                                {p.verified ? 'Verified' : 'Pending'}
-                            </span>
-                        </div>
-                        <button
-                            onClick={() => toggle(p)}
-                            className={`mt-3 w-full rounded-xl py-3 font-bold ${p.verified ? 'border border-slate-300 bg-white text-slate-brand' : 'bg-amber-brand text-white'
-                                }`}
-                        >
-                            {p.verified ? 'Verify hatayein' : 'Verify karein'}
-                        </button>
-                    </div>
+        <Page title="Provider verification" subtitle="Call the provider and confirm the shop or workshop before verifying.">
+            <div className="flex gap-2">
+                {tabs.map((t) => (
+                    <button
+                        key={t.key}
+                        onClick={() => setFilter(t.key)}
+                        className={`rounded-full px-4 py-2 text-sm font-semibold ${filter === t.key ? 'bg-slate-brand text-white' : 'border border-slate-300 bg-white'
+                            }`}
+                    >
+                        {t.label}
+                    </button>
                 ))}
             </div>
-        </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            {shown.length === 0 && <Empty icon={ShieldCheck} text="No providers in this list." />}
+
+            {shown.map((p) => (
+                <Card key={p.id}>
+                    <div className="flex items-start justify-between gap-3">
+                        <h3 className="text-lg font-semibold">{p.shop_name}</h3>
+                        <Badge tone={p.verified ? 'green' : 'amber'}>{p.verified ? 'Verified' : 'Pending'}</Badge>
+                    </div>
+                    <Facts items={[
+                        { label: 'Category', value: p.category },
+                        { label: 'Location', value: `${p.city} ${p.pincode ?? ''}` },
+                        { label: 'Owner', value: p.profile?.name },
+                        { label: 'Phone', value: p.profile?.phone },
+                    ]} />
+                    <Button variant={p.verified ? 'outline' : 'primary'} className="mt-3" onClick={() => toggle(p)}>
+                        {p.verified ? 'Remove verification' : 'Verify provider'}
+                    </Button>
+                </Card>
+            ))}
+        </Page>
     )
 }

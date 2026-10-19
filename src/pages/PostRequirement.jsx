@@ -1,10 +1,13 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { Page, Card, Input, Textarea, Select, Button, Field } from '../components/ui'
 
 const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Aggregate']
 
 export default function PostRequirement() {
+    const navigate = useNavigate()
     const { user, profile } = useAuth()
     const [form, setForm] = useState({
         category: CATEGORIES[0], title: '', details: '', quantity: '',
@@ -12,7 +15,6 @@ export default function PostRequirement() {
     })
     const [file, setFile] = useState(null)
     const [error, setError] = useState('')
-    const [done, setDone] = useState(false)
     const [busy, setBusy] = useState(false)
 
     const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
@@ -20,7 +22,7 @@ export default function PostRequirement() {
     function pickFile(e) {
         const f = e.target.files[0]
         if (f && f.size > 3 * 1024 * 1024) {
-            setError('Photo 3 MB se chhoti honi chahiye')
+            setError('Photo must be smaller than 3 MB.')
             e.target.value = ''
             return
         }
@@ -30,7 +32,8 @@ export default function PostRequirement() {
 
     async function submit(e) {
         e.preventDefault()
-        setError(''); setDone(false); setBusy(true)
+        setError('')
+        setBusy(true)
 
         let photo_url = null
         if (file) {
@@ -46,41 +49,51 @@ export default function PostRequirement() {
         })
         setBusy(false)
         if (insErr) { setError(insErr.message); return }
-
-        setDone(true)
-        setForm({ ...form, title: '', details: '', quantity: '' })
-        setFile(null)
-        e.target.reset()
+        navigate('/my-requests')
     }
 
-    const input = 'w-full rounded-xl border border-slate-300 px-4 py-3 text-base bg-white'
-
     return (
-        <div className="min-h-screen bg-slate-50 px-4 py-6">
-            <form onSubmit={submit} className="mx-auto max-w-md space-y-4 rounded-2xl border border-slate-200 bg-white p-6">
-                <h1 className="text-2xl font-bold text-slate-brand">Requirement daalein / Post Requirement</h1>
+        <Page title="Post a requirement" subtitle="Describe what you need. Verified providers nearby will send you quotes.">
+            <form onSubmit={submit} className="space-y-4">
+                <Card className="space-y-4">
+                    <Field label="Category">
+                        <Select value={form.category} onChange={set('category')}>
+                            {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
+                        </Select>
+                    </Field>
+                    <Field label="What do you need?">
+                        <Input placeholder="e.g. Main gate, 50 bags of cement" value={form.title} onChange={set('title')} required />
+                    </Field>
+                    <Field label="Quantity or size">
+                        <Input placeholder="e.g. 10 x 6 ft, 50 bags" value={form.quantity} onChange={set('quantity')} />
+                    </Field>
+                    <Field label="Additional details">
+                        <Textarea rows={3} placeholder="Design, material grade, delivery date" value={form.details} onChange={set('details')} />
+                    </Field>
+                </Card>
 
-                <select className={input} value={form.category} onChange={set('category')}>
-                    {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
-                </select>
-                <input className={input} placeholder="Kya chahiye? (jaise Main gate, 50 bori cement)" value={form.title} onChange={set('title')} required />
-                <textarea className={input} rows={3} placeholder="Detail: size, design, kab tak chahiye" value={form.details} onChange={set('details')} />
-                <input className={input} placeholder="Matra / Quantity (jaise 10x6 feet, 50 bags)" value={form.quantity} onChange={set('quantity')} />
-                <input className={input} placeholder="Sheher / City" value={form.city} onChange={set('city')} required />
-                <input className={input} placeholder="Pincode" value={form.pincode} onChange={set('pincode')} required />
+                <Card className="space-y-4">
+                    <p className="font-semibold">Location</p>
+                    <Field label="City">
+                        <Input value={form.city} onChange={set('city')} required />
+                    </Field>
+                    <Field label="Pincode">
+                        <Input inputMode="numeric" value={form.pincode} onChange={set('pincode')} required />
+                    </Field>
+                </Card>
 
-                <label className="block text-sm font-semibold text-slate-500">
-                    Photo (optional)
-                    <input type="file" accept="image/*" onChange={pickFile} className="mt-1 block w-full text-sm" />
-                </label>
+                <Card>
+                    <Field label="Photo (optional, max 3 MB)">
+                        <input type="file" accept="image/*" onChange={pickFile} className="block w-full text-sm" />
+                    </Field>
+                    {file && (
+                        <img src={URL.createObjectURL(file)} alt="Preview" className="mt-3 h-40 w-full rounded-xl object-cover" />
+                    )}
+                </Card>
 
                 {error && <p className="text-sm text-red-600">{error}</p>}
-                {done && <p className="text-sm font-semibold text-green-600">Requirement post ho gayi. Providers ab quote bhejenge.</p>}
-
-                <button disabled={busy} className="w-full rounded-xl bg-amber-brand py-3 text-lg font-bold text-white disabled:opacity-60">
-                    {busy ? 'Ruko...' : 'Post karein'}
-                </button>
+                <Button disabled={busy}>{busy ? 'Posting...' : 'Post requirement'}</Button>
             </form>
-        </div>
+        </Page>
     )
 }
