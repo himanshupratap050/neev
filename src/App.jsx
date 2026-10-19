@@ -13,15 +13,17 @@ export default function App() {
   return (
     <>
       <Navbar />
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="/login" element={<Login />} />
-        <Route path="/signup" element={<Signup />} />
-        <Route path="/post" element={<ProtectedRoute role="customer"><PostRequirement /></ProtectedRoute>} />
-        <Route path="/my-requests" element={<ProtectedRoute role="customer"><MyRequests /></ProtectedRoute>} />
-        <Route path="/leads" element={<ProtectedRoute role="provider"><ProviderLeads /></ProtectedRoute>} />
-        <Route path="/admin" element={<ProtectedRoute role="admin"><Admin /></ProtectedRoute>} />
-      </Routes>
+      <main className="pb-20 md:pb-0">
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/post" element={<ProtectedRoute role="customer"><PostRequirement /></ProtectedRoute>} />
+          <Route path="/my-requests" element={<ProtectedRoute role="customer"><MyRequests /></ProtectedRoute>} />
+          <Route path="/leads" element={<ProtectedRoute role="provider"><ProviderLeads /></ProtectedRoute>} />
+          <Route path="/admin" element={<ProtectedRoute role="admin"><Admin /></ProtectedRoute>} />
+        </Routes>
+      </main>
     </>
   )
 }
