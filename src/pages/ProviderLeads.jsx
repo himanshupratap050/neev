@@ -84,7 +84,10 @@ export default function ProviderLeads() {
                         { label: 'Posted', value: timeAgo(r.created_at) },
                     ]} />
                     {r.details && <p className="mt-3 text-sm text-muted">{r.details}</p>}
-                    {r.photo_url && <img src={r.photo_url} alt="" className="mt-3 h-40 w-full rounded-xl object-cover" />}
+                    {r.photo_url && (
+                        <img src={r.photo_url} alt="" onError={(e) => { e.currentTarget.style.display = 'none' }}
+                            className="mt-3 h-32 w-full rounded-xl object-cover" />
+                    )}
 
                     {sent[r.id] ? (
                         <div className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">

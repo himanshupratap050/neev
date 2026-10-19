@@ -87,7 +87,10 @@ export default function MyRequests() {
                             { label: 'Location', value: `${r.city} ${r.pincode ?? ''}` },
                             { label: 'Posted', value: timeAgo(r.created_at) },
                         ]} />
-                        {r.photo_url && <img src={r.photo_url} alt="" className="mt-3 h-32 w-full rounded-xl object-cover" />}
+                        {r.photo_url && (
+                            <img src={r.photo_url} alt="" onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                className="mt-3 h-32 w-full rounded-xl object-cover" />
+                        )}
 
                         {r.status === 'open' && (
                             <div className="mt-4 border-t border-slate-100 pt-3">
