@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react'
 import { ShieldCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
-import { Page, Card, Button, Badge, Facts, Empty, Spinner } from '../components/ui'
+import { Page, Grid, Card, Button, Badge, Facts, Empty, Spinner } from '../components/ui'
 
 export default function Admin() {
     const [rows, setRows] = useState([])
@@ -44,8 +44,8 @@ export default function Admin() {
     ]
 
     return (
-        <Page title="Provider verification" subtitle="Call the provider and confirm the shop or workshop before verifying.">
-            <div className="flex gap-2">
+        <Page size="wide" title="Provider verification" subtitle="Call the provider and confirm the shop or workshop before verifying.">
+            <div className="flex flex-wrap gap-2">
                 {tabs.map((t) => (
                     <button
                         key={t.key}
@@ -61,23 +61,25 @@ export default function Admin() {
             {error && <p className="text-sm text-red-600">{error}</p>}
             {shown.length === 0 && <Empty icon={ShieldCheck} text="No providers in this list." />}
 
-            {shown.map((p) => (
-                <Card key={p.id}>
-                    <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-lg font-semibold">{p.shop_name}</h3>
-                        <Badge tone={p.verified ? 'green' : 'amber'}>{p.verified ? 'Verified' : 'Pending'}</Badge>
-                    </div>
-                    <Facts items={[
-                        { label: 'Category', value: p.category },
-                        { label: 'Location', value: `${p.city} ${p.pincode ?? ''}` },
-                        { label: 'Owner', value: p.profile?.name },
-                        { label: 'Phone', value: p.profile?.phone },
-                    ]} />
-                    <Button variant={p.verified ? 'outline' : 'primary'} className="mt-3" onClick={() => toggle(p)}>
-                        {p.verified ? 'Remove verification' : 'Verify provider'}
-                    </Button>
-                </Card>
-            ))}
+            <Grid>
+                {shown.map((p) => (
+                    <Card key={p.id}>
+                        <div className="flex items-start justify-between gap-3">
+                            <h3 className="text-lg font-semibold">{p.shop_name}</h3>
+                            <Badge tone={p.verified ? 'green' : 'amber'}>{p.verified ? 'Verified' : 'Pending'}</Badge>
+                        </div>
+                        <Facts items={[
+                            { label: 'Category', value: p.category },
+                            { label: 'Location', value: `${p.city} ${p.pincode ?? ''}` },
+                            { label: 'Owner', value: p.profile?.name },
+                            { label: 'Phone', value: p.profile?.phone },
+                        ]} />
+                        <Button variant={p.verified ? 'outline' : 'primary'} className="mt-3" onClick={() => toggle(p)}>
+                            {p.verified ? 'Remove verification' : 'Verify provider'}
+                        </Button>
+                    </Card>
+                ))}
+            </Grid>
         </Page>
     )
 }

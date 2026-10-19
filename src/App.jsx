@@ -13,7 +13,7 @@ export default function App() {
   return (
     <>
       <Navbar />
-      <main className="pb-20 md:pb-0">
+      <main>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/login" element={<Login />} />

@@ -3,18 +3,9 @@ import { useNavigate, Link } from 'react-router-dom'
 import { User, Store } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { Page, Card, Input, Select, Button } from '../components/ui'
+import { Page, Card, Input, Select, Button, Field } from '../components/ui'
 
 const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Aggregate']
-
-function Field({ label, children }) {
-    return (
-        <label className="block text-sm font-semibold">
-            {label}
-            <div className="mt-1">{children}</div>
-        </label>
-    )
-}
 
 export default function Signup() {
     const navigate = useNavigate()

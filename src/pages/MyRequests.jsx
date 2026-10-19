@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import { ClipboardList, BadgeCheck } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { Page, Card, Button, Badge, StatusBadge, Facts, Empty, Spinner, timeAgo } from '../components/ui'
+import { Page, Grid, Card, Button, Badge, StatusBadge, Facts, Empty, Spinner, timeAgo } from '../components/ui'
 
 export default function MyRequests() {
     const { user } = useAuth()
@@ -59,89 +59,94 @@ export default function MyRequests() {
     if (loading) return <Spinner />
 
     return (
-        <Page title="My requests" subtitle="Track your requirements and compare quotes.">
+        <Page size="wide" title="My requests" subtitle="Track your requirements and compare quotes.">
             {error && <p className="text-sm text-red-600">{error}</p>}
 
             {requests.length === 0 && (
                 <>
                     <Empty icon={ClipboardList} text="You haven't posted any requirements yet." />
-                    <Link to="/post"><Button>Post a requirement</Button></Link>
+                    <Link to="/post" className="block max-w-xs"><Button>Post a requirement</Button></Link>
                 </>
             )}
 
-            {requests.map((r) => {
-                const quotes = [...r.quotes].sort((a, b) => a.price - b.price)
-                const lowest = quotes[0]?.id
-                const chosen = quotes.find((q) => q.status === 'accepted')
-                const contact = chosen && contacts[chosen.provider_id]
+            <Grid>
+                {requests.map((r) => {
+                    const quotes = [...r.quotes].sort((a, b) => a.price - b.price)
+                    const lowest = quotes[0]?.id
+                    const chosen = quotes.find((q) => q.status === 'accepted')
+                    const contact = chosen && contacts[chosen.provider_id]
 
-                return (
-                    <Card key={r.id}>
-                        <div className="flex items-start justify-between gap-3">
-                            <h3 className="text-lg font-semibold leading-snug">{r.title}</h3>
-                            <StatusBadge status={r.status} />
-                        </div>
-                        <Facts items={[
-                            { label: 'Category', value: r.category },
-                            { label: 'Quantity', value: r.quantity },
-                            { label: 'Location', value: `${r.city} ${r.pincode ?? ''}` },
-                            { label: 'Posted', value: timeAgo(r.created_at) },
-                        ]} />
-                        {r.photo_url && (
-                            <img src={r.photo_url} alt="" onError={(e) => { e.currentTarget.style.display = 'none' }}
-                                className="mt-3 h-32 w-full rounded-xl object-cover" />
-                        )}
+                    return (
+                        <Card key={r.id}>
+                            <div className="flex items-start justify-between gap-3">
+                                <h3 className="text-lg font-semibold leading-snug">{r.title}</h3>
+                                <StatusBadge status={r.status} />
+                            </div>
+                            <Facts items={[
+                                { label: 'Category', value: r.category },
+                                { label: 'Quantity', value: r.quantity },
+                                { label: 'Location', value: `${r.city} ${r.pincode ?? ''}` },
+                                { label: 'Posted', value: timeAgo(r.created_at) },
+                            ]} />
+                            {r.photo_url && (
+                                <img
+                                    src={r.photo_url} alt=""
+                                    onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                    className="mt-3 h-32 w-full rounded-xl object-cover"
+                                />
+                            )}
 
-                        {r.status === 'open' && (
-                            <div className="mt-4 border-t border-slate-100 pt-3">
-                                <p className="text-sm font-semibold">
-                                    {quotes.length === 0 ? 'Waiting for quotes' : `${quotes.length} quote${quotes.length > 1 ? 's' : ''} received`}
-                                </p>
-                                <div className="mt-2 space-y-2">
-                                    {quotes.map((q) => (
-                                        <div key={q.id} className="rounded-xl border border-slate-200 p-3">
-                                            <div className="flex items-start justify-between gap-2">
-                                                <div>
-                                                    <p className="font-semibold">{q.providers?.shop_name}</p>
-                                                    <div className="mt-1 flex flex-wrap gap-1">
-                                                        {q.providers?.verified
-                                                            ? <Badge tone="green">Verified</Badge>
-                                                            : <Badge tone="gray">Not verified</Badge>}
-                                                        {q.id === lowest && quotes.length > 1 && <Badge tone="blue">Lowest price</Badge>}
+                            {r.status === 'open' && (
+                                <div className="mt-4 border-t border-slate-100 pt-3">
+                                    <p className="text-sm font-semibold">
+                                        {quotes.length === 0 ? 'Waiting for quotes' : `${quotes.length} quote${quotes.length > 1 ? 's' : ''} received`}
+                                    </p>
+                                    <div className="mt-2 space-y-2">
+                                        {quotes.map((q) => (
+                                            <div key={q.id} className="rounded-xl border border-slate-200 p-3">
+                                                <div className="flex items-start justify-between gap-2">
+                                                    <div>
+                                                        <p className="font-semibold">{q.providers?.shop_name}</p>
+                                                        <div className="mt-1 flex flex-wrap gap-1">
+                                                            {q.providers?.verified
+                                                                ? <Badge tone="green">Verified</Badge>
+                                                                : <Badge tone="gray">Not verified</Badge>}
+                                                            {q.id === lowest && quotes.length > 1 && <Badge tone="blue">Lowest price</Badge>}
+                                                        </div>
                                                     </div>
+                                                    <p className="text-xl font-bold">₹{q.price}</p>
                                                 </div>
-                                                <p className="text-xl font-bold">₹{q.price}</p>
+                                                {q.message && <p className="mt-2 text-sm text-muted">{q.message}</p>}
+                                                <Button className="mt-3" onClick={() => accept(r, q)}>Accept quote</Button>
                                             </div>
-                                            {q.message && <p className="mt-2 text-sm text-muted">{q.message}</p>}
-                                            <Button className="mt-3" onClick={() => accept(r, q)}>Accept quote</Button>
-                                        </div>
-                                    ))}
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )}
 
-                        {chosen && (
-                            <div className="mt-4 rounded-xl bg-green-50 p-3">
-                                <div className="flex items-center gap-2 text-green-700">
-                                    <BadgeCheck className="h-5 w-5" />
-                                    <p className="font-semibold">{chosen.providers?.shop_name} · ₹{chosen.price}</p>
+                            {chosen && (
+                                <div className="mt-4 rounded-xl bg-green-50 p-3">
+                                    <div className="flex items-center gap-2 text-green-700">
+                                        <BadgeCheck className="h-5 w-5" />
+                                        <p className="font-semibold">{chosen.providers?.shop_name} · ₹{chosen.price}</p>
+                                    </div>
+                                    {contact?.phone && (
+                                        <>
+                                            <p className="mt-1 text-sm text-green-800">{contact.name} · {contact.phone}</p>
+                                            <a href={waLink(contact.phone, r.title)} target="_blank" rel="noreferrer">
+                                                <Button variant="success" className="mt-3">Chat on WhatsApp</Button>
+                                            </a>
+                                        </>
+                                    )}
+                                    {r.status === 'accepted' && (
+                                        <Button variant="outline" className="mt-2" onClick={() => complete(r)}>Mark as completed</Button>
+                                    )}
                                 </div>
-                                {contact?.phone && (
-                                    <>
-                                        <p className="mt-1 text-sm text-green-800">{contact.name} · {contact.phone}</p>
-                                        <a href={waLink(contact.phone, r.title)} target="_blank" rel="noreferrer">
-                                            <Button variant="success" className="mt-3">Chat on WhatsApp</Button>
-                                        </a>
-                                    </>
-                                )}
-                                {r.status === 'accepted' && (
-                                    <Button variant="outline" className="mt-2" onClick={() => complete(r)}>Mark as completed</Button>
-                                )}
-                            </div>
-                        )}
-                    </Card>
-                )
-            })}
+                            )}
+                        </Card>
+                    )
+                })}
+            </Grid>
         </Page>
     )
 }

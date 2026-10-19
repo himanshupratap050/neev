@@ -1,11 +1,16 @@
-export function Page({ title, subtitle, children }) {
+export function Page({ title, subtitle, size = 'narrow', children }) {
+    const width = size === 'wide' ? 'max-w-6xl' : 'max-w-xl'
     return (
-        <div className="mx-auto w-full max-w-md px-4 py-6 md:max-w-2xl">
-            {title && <h1 className="text-2xl font-bold">{title}</h1>}
-            {subtitle && <p className="mt-1 text-sm text-muted">{subtitle}</p>}
+        <div className={`mx-auto w-full ${width} px-4 py-6 md:py-10`}>
+            {title && <h1 className="text-2xl font-bold md:text-3xl">{title}</h1>}
+            {subtitle && <p className="mt-1 text-sm text-muted md:text-base">{subtitle}</p>}
             <div className="mt-4 space-y-4">{children}</div>
         </div>
     )
+}
+
+export function Grid({ children }) {
+    return <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-3">{children}</div>
 }
 
 export function Card({ children, className = '' }) {
@@ -44,6 +49,15 @@ export function Select(props) {
     return <select {...props} className={field} />
 }
 
+export function Field({ label, children }) {
+    return (
+        <label className="block text-sm font-semibold">
+            {label}
+            <div className="mt-1">{children}</div>
+        </label>
+    )
+}
+
 export function Badge({ tone = 'gray', children }) {
     const tones = {
         gray: 'bg-slate-100 text-slate-600',
@@ -55,28 +69,6 @@ export function Badge({ tone = 'gray', children }) {
         <span className={`inline-block rounded-full px-3 py-1 text-xs font-semibold ${tones[tone]}`}>
             {children}
         </span>
-    )
-}
-
-export function Empty({ icon: Icon, text }) {
-    return (
-        <Card className="py-10 text-center text-muted">
-            {Icon && <Icon className="mx-auto mb-2 h-8 w-8" />}
-            <p>{text}</p>
-        </Card>
-    )
-}
-
-export function Spinner() {
-    return <p className="p-6 text-center text-muted">Loading...</p>
-}
-
-export function Field({ label, children }) {
-    return (
-        <label className="block text-sm font-semibold">
-            {label}
-            <div className="mt-1">{children}</div>
-        </label>
     )
 }
 
@@ -104,6 +96,19 @@ export function Facts({ items }) {
             ))}
         </dl>
     )
+}
+
+export function Empty({ icon: Icon, text }) {
+    return (
+        <Card className="py-10 text-center text-muted">
+            {Icon && <Icon className="mx-auto mb-2 h-8 w-8" />}
+            <p>{text}</p>
+        </Card>
+    )
+}
+
+export function Spinner() {
+    return <p className="p-6 text-center text-muted">Loading...</p>
 }
 
 export function timeAgo(iso) {

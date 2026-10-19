@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Inbox } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { Page, Card, Input, Button, Badge, Facts, Empty, Spinner, timeAgo } from '../components/ui'
+import { Page, Grid, Card, Input, Button, Badge, Facts, Empty, Spinner, timeAgo } from '../components/ui'
 
 function QuoteForm({ requestId, providerId, onSent }) {
     const [price, setPrice] = useState('')
@@ -60,11 +60,13 @@ export default function ProviderLeads() {
     if (!provider) return <Page title="Leads"><Empty text="Provider profile not found." /></Page>
 
     return (
-        <Page title="New leads" subtitle={`${provider.shop_name} · ${provider.category} · ${provider.city}`}>
+        <Page size="wide" title="New leads" subtitle={`${provider.shop_name} · ${provider.category} · ${provider.city}`}>
             {!provider.verified && (
                 <Card className="border-amber-200 bg-amber-50">
                     <p className="text-sm font-semibold text-amber-800">Verification pending</p>
-                    <p className="text-sm text-amber-800">You can send quotes now. Customers will see a "Verified" badge once our team approves your profile.</p>
+                    <p className="text-sm text-amber-800">
+                        You can send quotes now. Customers will see a "Verified" badge once our team approves your profile.
+                    </p>
                 </Card>
             )}
 
@@ -72,32 +74,37 @@ export default function ProviderLeads() {
                 <Empty icon={Inbox} text="No open requirements in your category and city right now." />
             )}
 
-            {leads.map((r) => (
-                <Card key={r.id}>
-                    <div className="flex items-start justify-between gap-3">
-                        <h3 className="text-lg font-semibold leading-snug">{r.title}</h3>
-                        <Badge tone="blue">New</Badge>
-                    </div>
-                    <Facts items={[
-                        { label: 'Quantity', value: r.quantity },
-                        { label: 'Location', value: `${r.city} ${r.pincode ?? ''}` },
-                        { label: 'Posted', value: timeAgo(r.created_at) },
-                    ]} />
-                    {r.details && <p className="mt-3 text-sm text-muted">{r.details}</p>}
-                    {r.photo_url && (
-                        <img src={r.photo_url} alt="" onError={(e) => { e.currentTarget.style.display = 'none' }}
-                            className="mt-3 h-32 w-full rounded-xl object-cover" />
-                    )}
-
-                    {sent[r.id] ? (
-                        <div className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
-                            Quote sent: ₹{sent[r.id].price}
+            <Grid>
+                {leads.map((r) => (
+                    <Card key={r.id}>
+                        <div className="flex items-start justify-between gap-3">
+                            <h3 className="text-lg font-semibold leading-snug">{r.title}</h3>
+                            <Badge tone="blue">New</Badge>
                         </div>
-                    ) : (
-                        <QuoteForm requestId={r.id} providerId={user.id} onSent={load} />
-                    )}
-                </Card>
-            ))}
+                        <Facts items={[
+                            { label: 'Quantity', value: r.quantity },
+                            { label: 'Location', value: `${r.city} ${r.pincode ?? ''}` },
+                            { label: 'Posted', value: timeAgo(r.created_at) },
+                        ]} />
+                        {r.details && <p className="mt-3 text-sm text-muted">{r.details}</p>}
+                        {r.photo_url && (
+                            <img
+                                src={r.photo_url} alt=""
+                                onError={(e) => { e.currentTarget.style.display = 'none' }}
+                                className="mt-3 h-40 w-full rounded-xl object-cover"
+                            />
+                        )}
+
+                        {sent[r.id] ? (
+                            <div className="mt-3 rounded-xl bg-green-50 px-3 py-2 text-sm font-semibold text-green-700">
+                                Quote sent: ₹{sent[r.id].price}
+                            </div>
+                        ) : (
+                            <QuoteForm requestId={r.id} providerId={user.id} onSent={load} />
+                        )}
+                    </Card>
+                ))}
+            </Grid>
         </Page>
     )
 }
