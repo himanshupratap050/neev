@@ -115,7 +115,10 @@ export default function Navbar() {
         links.push({ to: '/post', label: 'Post a requirement', icon: PlusCircle })
         links.push({ to: '/my-requests', label: 'My requests', icon: ClipboardList })
     }
-    if (profile?.role === 'provider') links.push({ to: '/leads', label: 'Leads', icon: Inbox })
+    if (profile?.role === 'provider') {
+        links.push({ to: '/leads', label: 'Leads', icon: Inbox })
+        links.push({ to: '/my-quotes', label: 'My quotes', icon: ClipboardList })
+    }
     if (profile?.role === 'admin') links.push({ to: '/admin', label: 'Admin panel', icon: ShieldCheck })
 
     const guestLinks = [

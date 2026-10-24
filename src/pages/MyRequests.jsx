@@ -1,14 +1,54 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { ClipboardList, BadgeCheck } from 'lucide-react'
+import { ClipboardList, BadgeCheck, Star } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
-import { Page, Grid, Card, Button, Badge, StatusBadge, Facts, Empty, Spinner, timeAgo } from '../components/ui'
+import { Page, Grid, Card, Button, Input, Badge, StatusBadge, Facts, Empty, Spinner, timeAgo } from '../components/ui'
+
+function ReviewForm({ requestId, providerId, onDone }) {
+    const [rating, setRating] = useState(5)
+    const [comment, setComment] = useState('')
+    const [error, setError] = useState('')
+    const [busy, setBusy] = useState(false)
+
+    async function submit(e) {
+        e.preventDefault()
+        setError('')
+        setBusy(true)
+        const { error } = await supabase.from('reviews').insert({
+            request_id: requestId, provider_id: providerId, rating, comment,
+        })
+        setBusy(false)
+        if (error) { setError(error.message); return }
+        onDone()
+    }
+
+    return (
+        <form onSubmit={submit} className="mt-3 space-y-2">
+            <p className="text-sm font-semibold text-green-800">Rate this provider</p>
+            <div className="flex gap-1">
+                {[1, 2, 3, 4, 5].map((n) => (
+                    <button
+                        type="button" key={n} onClick={() => setRating(n)}
+                        aria-label={`${n} star${n > 1 ? 's' : ''}`}
+                    >
+                        <Star className={`h-8 w-8 ${n <= rating ? 'fill-amber-brand text-amber-brand' : 'text-slate-300'}`} />
+                    </button>
+                ))}
+            </div>
+            <Input placeholder="Share your experience (optional)" value={comment} onChange={(e) => setComment(e.target.value)} />
+            {error && <p className="text-sm text-red-600">{error}</p>}
+            <Button disabled={busy}>{busy ? 'Submitting...' : 'Submit review'}</Button>
+        </form>
+    )
+}
 
 export default function MyRequests() {
     const { user } = useAuth()
     const [requests, setRequests] = useState([])
     const [contacts, setContacts] = useState({})
+    const [ratings, setRatings] = useState({})
+    const [reviewed, setReviewed] = useState(new Set())
     const [loading, setLoading] = useState(true)
     const [error, setError] = useState('')
 
@@ -21,12 +61,29 @@ export default function MyRequests() {
         if (error) { setError(error.message); setLoading(false); return }
         setRequests(data ?? [])
 
-        const ids = (data ?? [])
+        const acceptedIds = (data ?? [])
             .flatMap((r) => r.quotes.filter((q) => q.status === 'accepted'))
             .map((q) => q.provider_id)
-        if (ids.length) {
-            const { data: profs } = await supabase.from('profiles').select('id, name, phone').in('id', ids)
+        if (acceptedIds.length) {
+            const { data: profs } = await supabase.from('profiles').select('id, name, phone').in('id', acceptedIds)
             setContacts(Object.fromEntries((profs ?? []).map((p) => [p.id, p])))
+        }
+
+        const providerIds = [...new Set((data ?? []).flatMap((r) => r.quotes.map((q) => q.provider_id)))]
+        if (providerIds.length) {
+            const { data: revs } = await supabase
+                .from('reviews').select('request_id, provider_id, rating').in('provider_id', providerIds)
+            const stats = {}
+            const done = new Set()
+            for (const v of revs ?? []) {
+                const s = stats[v.provider_id] ?? { sum: 0, count: 0 }
+                s.sum += v.rating
+                s.count += 1
+                stats[v.provider_id] = s
+                done.add(v.request_id)
+            }
+            setRatings(stats)
+            setReviewed(done)
         }
         setLoading(false)
     }
@@ -51,6 +108,17 @@ export default function MyRequests() {
         const digits = (phone ?? '').replace(/\D/g, '').slice(-10)
         const text = encodeURIComponent(`Hello, I accepted your quote on NEEV for: ${title}`)
         return `https://wa.me/91${digits}?text=${text}`
+    }
+
+    function Rating({ providerId }) {
+        const s = ratings[providerId]
+        if (!s) return <span className="text-xs text-muted">No reviews yet</span>
+        return (
+            <span className="flex items-center gap-1 text-xs font-semibold">
+                <Star className="h-4 w-4 fill-amber-brand text-amber-brand" />
+                {(s.sum / s.count).toFixed(1)} ({s.count})
+            </span>
+        )
     }
 
     if (loading) return <Spinner />
@@ -104,12 +172,13 @@ export default function MyRequests() {
                                                 <div className="flex items-start justify-between gap-2">
                                                     <div>
                                                         <p className="font-semibold">{q.providers?.shop_name}</p>
-                                                        <div className="mt-1 flex flex-wrap gap-1">
+                                                        <div className="mt-1 flex flex-wrap items-center gap-1">
                                                             {q.providers?.verified
                                                                 ? <Badge tone="green">Verified</Badge>
                                                                 : <Badge tone="gray">Not verified</Badge>}
                                                             {q.id === lowest && quotes.length > 1 && <Badge tone="blue">Lowest price</Badge>}
                                                         </div>
+                                                        <div className="mt-1"><Rating providerId={q.provider_id} /></div>
                                                     </div>
                                                     <p className="text-xl font-bold">₹{q.price}</p>
                                                 </div>
@@ -137,6 +206,11 @@ export default function MyRequests() {
                                     )}
                                     {r.status === 'accepted' && (
                                         <Button variant="outline" className="mt-2" onClick={() => complete(r)}>Mark as completed</Button>
+                                    )}
+                                    {r.status === 'completed' && (
+                                        reviewed.has(r.id)
+                                            ? <p className="mt-3 text-sm font-semibold text-green-800">Thank you, your review has been submitted.</p>
+                                            : <ReviewForm requestId={r.id} providerId={chosen.provider_id} onDone={load} />
                                     )}
                                 </div>
                             )}
