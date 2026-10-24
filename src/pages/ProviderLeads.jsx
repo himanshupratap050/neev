@@ -45,7 +45,7 @@ export default function ProviderLeads() {
         if (!p) { setLoading(false); return }
 
         const { data: reqs } = await supabase.from('requests').select('*')
-            .eq('status', 'open').eq('category', p.category).ilike('city', p.city)
+            .eq('status', 'open').eq('category', p.category).like('pincode', `${(p.pincode ?? '').slice(0, 3)}%`)
             .order('created_at', { ascending: false })
         setLeads(reqs ?? [])
 
