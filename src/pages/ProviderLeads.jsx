@@ -19,6 +19,7 @@ import { useEffect, useState } from 'react'
 import { Inbox } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { friendlyError } from '../lib/errors'
 import { Page, Grid, Card, Input, Button, Badge, Facts, Empty, Spinner, timeAgo } from '../components/ui'
 
 /* ===============================================================
@@ -47,7 +48,7 @@ function QuoteForm({ requestId, providerId, onSent }) {
             message,
         })
         setBusy(false)
-        if (error) { setError(error.message); return }
+        if (error) { setError(friendlyError(error)); return }
         onSent() // tell the parent page to reload the list
     }
 

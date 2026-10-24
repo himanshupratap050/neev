@@ -1,8 +1,25 @@
+/**
+ * Signup.jsx: REGISTRATION MODULE
+ * ---------------------------------------------------------------
+ * Purpose : Creates an account for a customer or a provider.
+ * Route   : /signup (public)
+ * Tables  : profiles (insert), providers (insert, providers only)
+ * Auth    : supabase.auth.signUp (email + password)
+ * Flow    : validate -> create auth user -> insert profile
+ *           -> (provider) insert provider row -> reload profile -> Home
+ *
+ * DEBUG: "Email confirmation is still enabled" = turn off
+ *        Authentication -> Sign In / Providers -> Email -> Confirm email.
+ *        Half-created user (login works, no profile) = profile insert
+ *        failed after signUp. Validation below prevents most causes;
+ *        the profile trigger planned next removes the risk completely.
+ */
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { User, Store } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { friendlyError, isValidPhone, isValidPincode } from '../lib/errors'
 import { Page, Card, Input, Select, Button, Field } from '../components/ui'
 
 const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Aggregate']
@@ -10,6 +27,8 @@ const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Agg
 export default function Signup() {
     const navigate = useNavigate()
     const { reloadProfile } = useAuth()
+
+    // ---- Form state ----
     const [form, setForm] = useState({
         email: '', password: '', name: '', phone: '', city: '',
         role: 'customer', shop_name: '', category: CATEGORIES[0], pincode: '',
@@ -19,32 +38,49 @@ export default function Signup() {
 
     const set = (k) => (e) => setForm({ ...form, [k]: e.target.value })
 
+    // ---- Submit ----
     async function submit(e) {
         e.preventDefault()
         setError('')
+
+        // Step 0: validate BEFORE creating the account, so a bad phone or
+        // pincode can never leave a half-registered user behind.
+        if (!isValidPhone(form.phone)) {
+            setError('Please enter a valid phone number (10 to 15 digits).')
+            return
+        }
+        if (form.role === 'provider' && !isValidPincode(form.pincode)) {
+            setError('Please enter a valid 6-digit pincode.')
+            return
+        }
+
         setBusy(true)
 
+        // Step 1: create the login account
         const { data, error: authErr } = await supabase.auth.signUp({
-            email: form.email, password: form.password,
+            email: form.email.trim(), password: form.password,
         })
-        if (authErr) { setError(authErr.message); setBusy(false); return }
+        if (authErr) { setError(friendlyError(authErr)); setBusy(false); return }
         if (!data.session) {
             setError('Email confirmation is still enabled in Supabase. Turn off "Confirm email" for testing.')
             setBusy(false); return
         }
 
+        // Step 2: save the profile (name, phone, city, role)
         const uid = data.user.id
         const { error: pErr } = await supabase.from('profiles').insert({
-            id: uid, name: form.name, phone: form.phone, city: form.city, role: form.role,
+            id: uid, name: form.name.trim(), phone: form.phone.trim(),
+            city: form.city.trim(), role: form.role,
         })
-        if (pErr) { setError(pErr.message); setBusy(false); return }
+        if (pErr) { setError(friendlyError(pErr)); setBusy(false); return }
 
+        // Step 3 (providers only): save the business details
         if (form.role === 'provider') {
             const { error: prErr } = await supabase.from('providers').insert({
-                id: uid, shop_name: form.shop_name, category: form.category,
-                city: form.city, pincode: form.pincode,
+                id: uid, shop_name: form.shop_name.trim(), category: form.category,
+                city: form.city.trim(), pincode: form.pincode.trim(),
             })
-            if (prErr) { setError(prErr.message); setBusy(false); return }
+            if (prErr) { setError(friendlyError(prErr)); setBusy(false); return }
         }
 
         await reloadProfile()
@@ -52,14 +88,18 @@ export default function Signup() {
         navigate('/')
     }
 
+    // ---- Role cards ----
     const roles = [
         { value: 'customer', label: 'Customer', hint: 'I need materials or fabrication work', icon: User },
         { value: 'provider', label: 'Provider', hint: 'I run a store or workshop', icon: Store },
     ]
 
+    // ---- UI ----
     return (
         <Page title="Create your account" subtitle="Join NEEV in a minute">
             <form onSubmit={submit} className="space-y-4">
+
+                {/* Role chooser */}
                 <div className="grid grid-cols-2 gap-3">
                     {roles.map(({ value, label, hint, icon: Icon }) => {
                         const on = form.role === value
@@ -78,12 +118,14 @@ export default function Signup() {
                     })}
                 </div>
 
+                {/* Personal details */}
                 <Card className="space-y-4">
                     <Field label="Full name">
                         <Input value={form.name} onChange={set('name')} required />
                     </Field>
                     <Field label="Phone number">
-                        <Input type="tel" inputMode="numeric" value={form.phone} onChange={set('phone')} required />
+                        <Input type="tel" inputMode="numeric" maxLength={15} placeholder="10-digit mobile number"
+                            value={form.phone} onChange={set('phone')} required />
                     </Field>
                     <Field label="City">
                         <Input placeholder="e.g. Siwan" value={form.city} onChange={set('city')} required />
@@ -96,6 +138,7 @@ export default function Signup() {
                     </Field>
                 </Card>
 
+                {/* Business details (providers only) */}
                 {form.role === 'provider' && (
                     <Card className="space-y-4">
                         <p className="font-semibold">Business details</p>
@@ -107,8 +150,9 @@ export default function Signup() {
                                 {CATEGORIES.map((c) => <option key={c}>{c}</option>)}
                             </Select>
                         </Field>
-                        <Field label="Pincode">
-                            <Input inputMode="numeric" value={form.pincode} onChange={set('pincode')} required />
+                        <Field label="Pincode (6 digits)">
+                            <Input inputMode="numeric" maxLength={6} placeholder="e.g. 841226"
+                                value={form.pincode} onChange={set('pincode')} required />
                         </Field>
                         <p className="text-xs text-muted">
                             Our team will verify your details. Once approved, you will receive a "Verified" badge.

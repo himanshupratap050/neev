@@ -23,6 +23,7 @@ import { Link } from 'react-router-dom'
 import { ClipboardList, BadgeCheck, Star } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { friendlyError } from '../lib/errors'
 import { Page, Grid, Card, Button, Input, Badge, StatusBadge, Facts, Empty, Spinner, timeAgo } from '../components/ui'
 
 /* ===============================================================
@@ -45,7 +46,7 @@ function ReviewForm({ requestId, providerId, onDone }) {
             request_id: requestId, provider_id: providerId, rating, comment,
         })
         setBusy(false)
-        if (error) { setError(error.message); return }
+        if (error) { setError(friendlyError(error)); return }
         onDone()
     }
 
@@ -102,7 +103,7 @@ export default function MyRequests() {
             .select('*, quotes(*, providers(shop_name, verified))')
             .eq('customer_id', user.id)
             .order('created_at', { ascending: false })
-        if (error) { setError(error.message); setLoading(false); return }
+        if (error) { setError(friendlyError(error)); setLoading(false); return }
         setRequests(data ?? [])
 
         // Step 2: name and phone of providers whose quote I accepted
@@ -142,7 +143,7 @@ export default function MyRequests() {
         if (!window.confirm(`Accept the quote of ₹${quote.price} from ${quote.providers?.shop_name}?`)) return
         setError('')
         const { error } = await supabase.rpc('accept_quote', { p_quote_id: quote.id })
-        if (error) { setError(error.message); return }
+        if (error) { setError(friendlyError(error)); return }
         load()
     }
 
@@ -151,7 +152,7 @@ export default function MyRequests() {
         if (!window.confirm('Cancel this requirement? Providers will no longer see it.')) return
         setError('')
         const { error } = await supabase.from('requests').update({ status: 'cancelled' }).eq('id', req.id)
-        if (error) { setError(error.message); return }
+        if (error) { setError(friendlyError(error)); return }
         load()
     }
 
@@ -159,7 +160,7 @@ export default function MyRequests() {
     async function complete(req) {
         setError('')
         const { error } = await supabase.from('requests').update({ status: 'completed' }).eq('id', req.id)
-        if (error) { setError(error.message); return }
+        if (error) { setError(friendlyError(error)); return }
         load()
     }
 
