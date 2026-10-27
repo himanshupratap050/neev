@@ -111,6 +111,7 @@ export function Products() {
             <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {PRODUCTS.map(p => (
                     <div key={p.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
+                        {/* phots addition for the same  */}
                         <div className={`flex h-32 items-center justify-center text-5xl ${p.color}`}>{p.image ? <img src={p.image} alt={t(`product.${p.id}.name`)} className="h-full w-full object-cover" /> : p.emoji}</div>
                         <div className="p-4">
                             <h3 className="font-semibold">{t(`product.${p.id}.name`)}</h3>

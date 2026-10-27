@@ -5,8 +5,8 @@
  * The text (name/hint) comes from i18n/translations.js using the id: product.<id>.name
  */
 export const PRODUCTS = [
-    { id: 'cement', color: 'bg-slate-200', emoji: '🧱', image: '' },
-    { id: 'tmt', color: 'bg-orange-100', emoji: '🏗️', image: '' },
-    { id: 'sand', color: 'bg-amber-100', emoji: '🏖️', image: '' },
-    { id: 'gitti', color: 'bg-sky-100', emoji: '🪨', image: '' },
+    { id: 'cement', color: 'bg-slate-200', emoji: '🧱', image: '/images/cement.webp' },
+    { id: 'tmt', color: 'bg-orange-100', emoji: '🏗️', image: '/images/tmt.webp' },
+    { id: 'sand', color: 'bg-amber-100', emoji: '🏖️', image: '/images/sand.webp' },
+    { id: 'gitti', color: 'bg-sky-100', emoji: '🪨', image: '/images/gitti.webp' },
 ]
