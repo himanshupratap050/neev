@@ -1,210 +1,102 @@
+/**
+ * Navbar: logo (left) | section links (middle) | search, language, cart, account (right)
+ * Account button opens the profile menu: sign in / signup for guests, role links + logout for users.
+ */
 import { useEffect, useRef, useState } from 'react'
-import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
-import {
-    Home, PlusCircle, ClipboardList, Inbox, ShieldCheck,
-    LogOut, UserCircle, ChevronDown, Store, Menu, X,
-} from 'lucide-react'
+import { Link, useNavigate } from 'react-router-dom'
+import { Search, ShoppingCart, UserCircle, ChevronDown, LogOut, Globe, Menu, X } from 'lucide-react'
 import { useAuth } from '../context/AuthContext'
+import { useLang } from '../context/LangContext'
+import { useCart } from '../context/CartContext'
 import { supabase } from '../lib/supabase'
-
-const ROLE_LABEL = { customer: 'Customer', provider: 'Provider', admin: 'Admin' }
-
-function MenuItem({ to, icon: Icon, children, onClick }) {
-    return (
-        <Link
-            to={to}
-            onClick={onClick}
-            className="flex items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium hover:bg-slate-50"
-        >
-            <Icon className="h-5 w-5 text-muted" />
-            {children}
-        </Link>
-    )
-}
-
-function AccountMenu({ user, profile, links, onLogout }) {
-    const [open, setOpen] = useState(false)
-    const ref = useRef(null)
-
-    useEffect(() => {
-        function onDown(e) {
-            if (ref.current && !ref.current.contains(e.target)) setOpen(false)
-        }
-        document.addEventListener('mousedown', onDown)
-        return () => document.removeEventListener('mousedown', onDown)
-    }, [])
-
-    const close = () => setOpen(false)
-
-    return (
-        <div ref={ref} className="relative">
-            <button
-                onClick={() => setOpen(!open)}
-                className="flex items-center gap-1 text-sm font-semibold text-white"
-                aria-expanded={open}
-            >
-                <UserCircle className="h-6 w-6" />
-                <span>{user ? 'Account' : 'Sign in'}</span>
-                <ChevronDown className={`h-4 w-4 transition ${open ? 'rotate-180' : ''}`} />
-            </button>
-
-            {open && (
-                <div className="absolute right-0 top-full z-30 mt-3 w-72 rounded-2xl border border-slate-200 bg-white p-3 text-slate-brand shadow-lg">
-                    {!user ? (
-                        <>
-                            <Link
-                                to="/login" onClick={close}
-                                className="block rounded-xl bg-amber-brand py-3 text-center font-semibold text-white"
-                            >
-                                Sign in
-                            </Link>
-                            <p className="mt-2 text-center text-sm text-muted">
-                                New to NEEV?{' '}
-                                <Link to="/signup" onClick={close} className="font-semibold text-blue-brand">Join now</Link>
-                            </p>
-                            <div className="mt-3 border-t border-slate-100 pt-2">
-                                <MenuItem to="/" icon={Home} onClick={close}>Home</MenuItem>
-                                <MenuItem to="/post" icon={PlusCircle} onClick={close}>Post a requirement</MenuItem>
-                                <MenuItem to="/signup" icon={Store} onClick={close}>Join as a provider</MenuItem>
-                            </div>
-                        </>
-                    ) : (
-                        <>
-                            <div className="px-3 pb-2">
-                                <p className="font-semibold">{profile?.name ?? 'Your account'}</p>
-                                <p className="text-xs text-muted">
-                                    {ROLE_LABEL[profile?.role] ?? ''}{profile?.city ? ` · ${profile.city}` : ''}
-                                </p>
-                            </div>
-                            <div className="border-t border-slate-100 pt-2">
-                                {links.map(({ to, label, icon }) => (
-                                    <MenuItem key={to} to={to} icon={icon} onClick={close}>{label}</MenuItem>
-                                ))}
-                                <button
-                                    onClick={() => { close(); onLogout() }}
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-sm font-medium text-red-600 hover:bg-red-50"
-                                >
-                                    <LogOut className="h-5 w-5" />
-                                    Log out
-                                </button>
-                            </div>
-                        </>
-                    )}
-                </div>
-            )}
-        </div>
-    )
-}
 
 export default function Navbar() {
     const { user, profile } = useAuth()
-    const [open, setOpen] = useState(false)
-    const location = useLocation()
+    const { t, lang, toggle } = useLang()
+    const { count } = useCart()
     const navigate = useNavigate()
+    const [open, setOpen] = useState(false)
+    const ref = useRef(null)
+    const [menu, setMenu] = useState(false) // mobile hamburger panel
+    // Pages opened by the header links
+    const NAV = [['/products', 'nav.products'], ['/tools', 'nav.tools'], ['/about', 'nav.about'], ['/faq', 'nav.faq']]
 
-    useEffect(() => { setOpen(false) }, [location.pathname])
+    // Close the profile menu when clicking anywhere outside it
+    useEffect(() => {
+        const h = e => ref.current && !ref.current.contains(e.target) && setOpen(false)
+        document.addEventListener('mousedown', h)
+        return () => document.removeEventListener('mousedown', h)
+    }, [])
 
-    async function logout() {
-        setOpen(false)
-        await supabase.auth.signOut()
-        navigate('/')
-    }
+    // Links shown inside the profile menu depend on the user's role
+    const roleLinks = {
+        customer: [['/post', 'nav.post'], ['/my-requests', 'nav.myRequests']],
+        provider: [['/leads', 'nav.leads'], ['/my-quotes', 'nav.myQuotes']],
+        admin: [['/admin', 'nav.admin']],
+    }[profile?.role] ?? []
 
-    const links = [{ to: '/', label: 'Home', icon: Home }]
-    if (profile?.role === 'customer') {
-        links.push({ to: '/post', label: 'Post a requirement', icon: PlusCircle })
-        links.push({ to: '/my-requests', label: 'My requests', icon: ClipboardList })
-    }
-    if (profile?.role === 'provider') {
-        links.push({ to: '/leads', label: 'Leads', icon: Inbox })
-        links.push({ to: '/my-quotes', label: 'My quotes', icon: ClipboardList })
-    }
-    if (profile?.role === 'admin') links.push({ to: '/admin', label: 'Admin panel', icon: ShieldCheck })
-
-    const guestLinks = [
-        { to: '/', label: 'Home', icon: Home },
-        { to: '/post', label: 'Post a requirement', icon: PlusCircle },
-        { to: '/signup', label: 'Join as a provider', icon: Store },
-    ]
-    const mobileLinks = user ? links : guestLinks
-
-    const desktopActive = ({ isActive }) => (isActive ? 'text-amber-brand' : 'text-slate-300 hover:text-white')
-    const mobileActive = ({ isActive }) =>
-        `flex items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold ${isActive ? 'bg-slate-800 text-amber-brand' : 'text-slate-200'
-        }`
+    async function logout() { setOpen(false); await supabase.auth.signOut(); navigate('/') }
+    const item = 'block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-slate-50'
 
     return (
-        <header className="sticky top-0 z-20 bg-slate-brand text-white">
-            <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3">
-                <Link to="/" className="text-xl font-bold">
+        <header className="sticky top-0 z-30 bg-slate-brand text-white shadow">
+            <div className="mx-auto flex max-w-7xl items-center gap-4 px-4 py-3">
+                {/* LEFT: logo */}
+                <Link to="/" className="shrink-0 text-xl font-bold">
                     <span className="text-amber-brand">NEEV</span>
                     <span className="ml-2 text-sm font-medium text-slate-300">नींव</span>
                 </Link>
 
-                {/* Desktop navigation */}
-                <nav className="hidden items-center gap-6 text-sm font-semibold md:flex">
-                    {user && links.map(({ to, label }) => (
-                        <NavLink key={to} to={to} end className={desktopActive}>{label}</NavLink>
-                    ))}
+                {/* MIDDLE: anchor links that scroll to Home sections */}
+                <nav className="hidden items-center gap-5 text-sm font-semibold text-slate-300 lg:flex">
+                    {NAV.map(([to, k]) => <Link key={to} to={to} className="hover:text-white">{t(k)}</Link>)}
                 </nav>
 
-                <div className="hidden md:block">
-                    <AccountMenu user={user} profile={profile} links={links} onLogout={logout} />
+                {/* SEARCH: visual only for now (site-wide search logic comes next) */}
+                <div className="relative hidden flex-1 md:block">
+                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+                    <input placeholder={t('nav.search')}
+                        className="w-full rounded-full bg-slate-800 py-2 pl-9 pr-4 text-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-amber-brand" />
                 </div>
 
-                {/* Mobile hamburger */}
-                <button
-                    className="md:hidden"
-                    onClick={() => setOpen(!open)}
-                    aria-label={open ? 'Close menu' : 'Open menu'}
-                    aria-expanded={open}
-                >
-                    {open ? <X className="h-7 w-7" /> : <Menu className="h-7 w-7" />}
-                </button>
-            </div>
-
-            {/* Mobile menu panel */}
-            {open && (
-                <div className="border-t border-slate-700 md:hidden">
-                    <div className="mx-auto max-w-6xl space-y-1 px-4 py-3">
-                        {user && (
-                            <div className="px-3 pb-2">
-                                <p className="font-semibold">{profile?.name ?? 'Your account'}</p>
-                                <p className="text-xs text-slate-400">
-                                    {ROLE_LABEL[profile?.role] ?? ''}{profile?.city ? ` · ${profile.city}` : ''}
-                                </p>
+                {/* RIGHT: language toggle, cart, account */}
+                <div className="ml-auto flex items-center gap-4 md:ml-0">
+                    <button className="lg:hidden" onClick={() => setMenu(!menu)} aria-label={t(menu ? 'nav.closeMenu' : 'nav.openMenu')}>{menu ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}</button>
+                    <button onClick={toggle} className="flex items-center gap-1 text-sm font-semibold">
+                        <Globe className="h-5 w-5" />{lang === 'en' ? 'हिंदी' : 'EN'}
+                    </button>
+                    <Link to="/cart" className="relative" aria-label={t('nav.cart')}>
+                        <ShoppingCart className="h-6 w-6" />
+                        {count > 0 && <span className="absolute -right-2 -top-2 rounded-full bg-amber-brand px-1.5 text-xs font-bold">{count}</span>}
+                    </Link>
+                    <div ref={ref} className="relative">
+                        <button onClick={() => setOpen(!open)} className="flex items-center gap-1 text-sm font-semibold">
+                            <UserCircle className="h-6 w-6" />
+                            <span className="hidden sm:inline">{user ? t('nav.account') : t('nav.signin')}</span>
+                            <ChevronDown className="h-4 w-4" />
+                        </button>
+                        {open && (
+                            <div className="absolute right-0 top-full mt-3 w-64 rounded-2xl bg-white p-3 text-slate-brand shadow-lg">
+                                {!user ? (<>
+                                    <Link to="/login" onClick={() => setOpen(false)} className="block rounded-xl bg-amber-brand py-3 text-center font-semibold text-white">{t('nav.signin')}</Link>
+                                    <p className="mt-2 text-center text-sm text-muted">{t('nav.newToNeev')} <Link to="/signup" onClick={() => setOpen(false)} className="font-semibold text-blue-brand">{t('nav.joinNow')}</Link></p>
+                                </>) : (<>
+                                    <p className="px-3 font-semibold">{profile?.name ?? t('nav.yourAccount')}</p>
+                                    <p className="px-3 pb-2 text-xs text-muted">{t('role.' + profile?.role)}</p>
+                                    {roleLinks.map(([to, k]) => <Link key={to} to={to} onClick={() => setOpen(false)} className={item}>{t(k)}</Link>)}
+                                    <button onClick={logout} className={item + ' flex w-full items-center gap-2 text-red-600'}><LogOut className="h-4 w-4" />{t('nav.logout')}</button>
+                                </>)}
                             </div>
                         )}
-
-                        {mobileLinks.map(({ to, label, icon: Icon }) => (
-                            <NavLink key={to} to={to} end className={mobileActive}>
-                                <Icon className="h-5 w-5" />
-                                {label}
-                            </NavLink>
-                        ))}
-
-                        <div className="border-t border-slate-700 pt-3">
-                            {user ? (
-                                <button
-                                    onClick={logout}
-                                    className="flex w-full items-center gap-3 rounded-xl px-3 py-3 text-base font-semibold text-red-400"
-                                >
-                                    <LogOut className="h-5 w-5" />
-                                    Log out
-                                </button>
-                            ) : (
-                                <div className="space-y-2">
-                                    <Link to="/login" className="block rounded-xl bg-amber-brand py-3 text-center font-semibold text-white">
-                                        Sign in
-                                    </Link>
-                                    <p className="text-center text-sm text-slate-400">
-                                        New to NEEV?{' '}
-                                        <Link to="/signup" className="font-semibold text-white underline">Join now</Link>
-                                    </p>
-                                </div>
-                            )}
-                        </div>
                     </div>
+                </div>
+            </div>
+            {/* MOBILE / TABLET MENU: same links + search, opened by the hamburger */}
+            {menu && (
+                <div className="space-y-1 border-t border-slate-700 px-4 py-3 lg:hidden">
+                    <input placeholder={t('nav.search')} className="mb-2 w-full rounded-full bg-slate-800 px-4 py-2 text-sm outline-none" />
+                    {NAV.map(([to, k]) => <Link key={to} to={to} onClick={() => setMenu(false)} className="block rounded-xl px-3 py-2.5 font-semibold hover:bg-slate-800">{t(k)}</Link>)}
+                    <Link to="/post" onClick={() => setMenu(false)} className="block rounded-xl bg-amber-brand px-3 py-2.5 text-center font-semibold">{t('nav.post')}</Link>
                 </div>
             )}
         </header>

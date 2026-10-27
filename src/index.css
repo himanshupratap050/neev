@@ -16,3 +16,14 @@ body {
   color: var(--color-slate-brand);
   font-family: var(--font-sans);
 }
+
+/* Smooth scroll for navbar links like /#products */
+html { scroll-behavior: smooth; }
+
+/* Each floor fades/rises in one after another, stays, then resets (loops forever) */
+@keyframes floor-rise {
+  0%, 5%   { opacity: 0; transform: translateY(20px); }
+  20%, 85% { opacity: 1; transform: translateY(0); }
+  100%     { opacity: 0; transform: translateY(0); }
+}
+.floor { animation: floor-rise 6s ease-in-out infinite; animation-delay: calc(var(--i) * 0.7s); }

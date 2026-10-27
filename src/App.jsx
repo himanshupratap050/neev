@@ -10,10 +10,15 @@
  *        Open F12 -> Console and look for "No routes matched location".
  *        Also check that the page's import line below exists.
  */
-import { Routes, Route } from 'react-router-dom'
+import { Routes, Route, Outlet } from 'react-router-dom'
 
 // ---- Shared components ----
 import Navbar from './components/Navbar'               // top header + menu
+import ProviderLayout from './components/ProviderLayout'  // provider sidebar dashboard
+import ProviderProducts from './pages/ProviderProducts'
+import Cart from './pages/Cart'
+import { ProductsPage, ToolsPage, AboutPage, FaqPage } from './pages/InfoPages'
+import Footer from './components/Footer'                 // bottom footer
 import ProtectedRoute from './components/ProtectedRoute' // login + role guard
 
 // ---- Public pages (no login needed) ----
@@ -32,29 +37,35 @@ import ProviderQuotes from './pages/ProviderQuotes'    // track sent/won quotes
 // ---- Admin pages ----
 import Admin from './pages/Admin'                      // verify providers
 
+// Customer layout: navbar on top, page in the middle, footer at the bottom
+function CustomerShell() {
+    return (<><Navbar /><main><Outlet /></main><Footer /></>)
+}
+
 export default function App() {
-  return (
-    <>
-      <Navbar />
-      <main>
+    return (
         <Routes>
-          {/* PUBLIC: anyone can open these */}
-          <Route path="/" element={<Home />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/signup" element={<Signup />} />
+            {/* CUSTOMER SIDE (also public pages + admin) */}
+            <Route element={<CustomerShell />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/products" element={<ProductsPage />} />
+                <Route path="/tools" element={<ToolsPage />} />
+                <Route path="/about" element={<AboutPage />} />
+                <Route path="/faq" element={<FaqPage />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/signup" element={<Signup />} />
+                <Route path="/post" element={<ProtectedRoute role="customer"><PostRequirement /></ProtectedRoute>} />
+                <Route path="/my-requests" element={<ProtectedRoute role="customer"><MyRequests /></ProtectedRoute>} />
+                <Route path="/admin" element={<ProtectedRoute role="admin"><Admin /></ProtectedRoute>} />
+            </Route>
 
-          {/* CUSTOMER ONLY: ProtectedRoute redirects others to Home or Login */}
-          <Route path="/post" element={<ProtectedRoute role="customer"><PostRequirement /></ProtectedRoute>} />
-          <Route path="/my-requests" element={<ProtectedRoute role="customer"><MyRequests /></ProtectedRoute>} />
-
-          {/* PROVIDER ONLY */}
-          <Route path="/leads" element={<ProtectedRoute role="provider"><ProviderLeads /></ProtectedRoute>} />
-          <Route path="/my-quotes" element={<ProtectedRoute role="provider"><ProviderQuotes /></ProtectedRoute>} />
-
-          {/* ADMIN ONLY */}
-          <Route path="/admin" element={<ProtectedRoute role="admin"><Admin /></ProtectedRoute>} />
+            {/* PROVIDER SIDE: its own sidebar dashboard */}
+            <Route element={<ProtectedRoute role="provider"><ProviderLayout /></ProtectedRoute>}>
+                <Route path="/leads" element={<ProviderLeads />} />
+                <Route path="/my-quotes" element={<ProviderQuotes />} />
+                <Route path="/provider/products" element={<ProviderProducts />} />
+            </Route>
         </Routes>
-      </main>
-    </>
-  )
+    )
 }
