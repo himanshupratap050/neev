@@ -169,7 +169,7 @@ export default function PostRequirement() {
                             </div>
                         ))}
                         <Field label={t('post.cart.details')}>
-                            <Textarea rows={3} placeholder={t('post.cart.detailsPh')}
+                            <Textarea rows={3} maxLength={2000} placeholder={t('post.cart.detailsPh')}
                                 value={form.details} onChange={set('details')} />
                         </Field>
                     </Card>
@@ -189,8 +189,8 @@ export default function PostRequirement() {
                             <Input placeholder={t('post.qtyPh')} value={form.quantity} onChange={set('quantity')} />
                         </Field>
                         <Field label={t('post.details')}>
-                            <Textarea rows={3} placeholder={t('post.detailsPh')}
-                                value={form.details} onChange={set('details')} />
+                                <Textarea rows={3} maxLength={2000} placeholder={t('post.detailsPh')}
+                                    value={form.details} onChange={set('details')} />
                         </Field>
                     </Card>
                 )}

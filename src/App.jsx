@@ -15,7 +15,6 @@ import { Routes, Route, Outlet } from 'react-router-dom'
 // ---- Shared components ----
 import Navbar from './components/Navbar'               // top header + menu
 import ProviderLayout from './components/ProviderLayout'  // provider sidebar dashboard
-import ProviderProducts from './pages/ProviderProducts'
 import Cart from './pages/Cart'
 import { ProductsPage, ToolsPage, AboutPage, FaqPage } from './pages/InfoPages'
 import Footer from './components/Footer'                 // bottom footer
@@ -26,20 +25,22 @@ import CartDrawer from './components/CartDrawer'       // slide-in cart
 import Home from './pages/Home'
 import Signup from './pages/Signup'
 import Login from './pages/Login'
+import ProductDetail from './pages/ProductDetail'      // product details
+import ShopPage from './pages/ShopPage'                // public shop page of a provider
 
 // ---- Customer pages ----
 import PostRequirement from './pages/PostRequirement'  // create a request
 import MyRequests from './pages/MyRequests'            // compare + accept quotes
 
 // ---- Provider pages ----
-import ProviderLeads from './pages/ProviderLeads'      // browse leads + send quotes
-import ProviderQuotes from './pages/ProviderQuotes'    // track sent/won quotes
+import ProviderDashboard from './pages/ProviderDashboard' // provider home: numbers + checklist
+import ProviderLeads from './pages/ProviderLeads'         // browse leads + send quotes
+import ProviderQuotes from './pages/ProviderQuotes'       // track sent/won quotes
+import ProviderProducts from './pages/ProviderProducts'   // list and manage products
+import ProviderProfile from './pages/ProviderProfile'     // edit shop details
 
 // ---- Admin pages ----
-import Admin from './pages/Admin'                      // verify providers
-
-// ---- Productdetails ----
-import ProductDetail from './pages/ProductDetail'      //product details
+import Admin from './pages/Admin'                      // admin panel
 
 // Customer layout: navbar on top, page in the middle, footer at the bottom
 function CustomerShell() {
@@ -53,6 +54,8 @@ export default function App() {
             <Route element={<CustomerShell />}>
                 <Route path="/" element={<Home />} />
                 <Route path="/products" element={<ProductsPage />} />
+                <Route path="/products/:id" element={<ProductDetail />} />
+                <Route path="/shop/:id" element={<ShopPage />} />
                 <Route path="/tools" element={<ToolsPage />} />
                 <Route path="/about" element={<AboutPage />} />
                 <Route path="/faq" element={<FaqPage />} />
@@ -62,14 +65,15 @@ export default function App() {
                 <Route path="/post" element={<ProtectedRoute role="customer"><PostRequirement /></ProtectedRoute>} />
                 <Route path="/my-requests" element={<ProtectedRoute role="customer"><MyRequests /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute role="admin"><Admin /></ProtectedRoute>} />
-                <Route path="/products/:id" element={<ProductDetail />} />
             </Route>
 
             {/* PROVIDER SIDE: its own sidebar dashboard */}
             <Route element={<ProtectedRoute role="provider"><ProviderLayout /></ProtectedRoute>}>
+                <Route path="/provider" element={<ProviderDashboard />} />
                 <Route path="/leads" element={<ProviderLeads />} />
                 <Route path="/my-quotes" element={<ProviderQuotes />} />
                 <Route path="/provider/products" element={<ProviderProducts />} />
+                <Route path="/provider/profile" element={<ProviderProfile />} />
             </Route>
         </Routes>
     )
