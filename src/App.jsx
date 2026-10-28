@@ -38,6 +38,9 @@ import ProviderQuotes from './pages/ProviderQuotes'    // track sent/won quotes
 // ---- Admin pages ----
 import Admin from './pages/Admin'                      // verify providers
 
+// ---- Productdetails ----
+import ProductDetail from './pages/ProductDetail'      //product details
+
 // Customer layout: navbar on top, page in the middle, footer at the bottom
 function CustomerShell() {
     return (<><Navbar /><main><Outlet /></main><Footer /><CartDrawer /></>)
@@ -59,6 +62,7 @@ export default function App() {
                 <Route path="/post" element={<ProtectedRoute role="customer"><PostRequirement /></ProtectedRoute>} />
                 <Route path="/my-requests" element={<ProtectedRoute role="customer"><MyRequests /></ProtectedRoute>} />
                 <Route path="/admin" element={<ProtectedRoute role="admin"><Admin /></ProtectedRoute>} />
+                <Route path="/products/:id" element={<ProductDetail />} />
             </Route>
 
             {/* PROVIDER SIDE: its own sidebar dashboard */}

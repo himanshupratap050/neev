@@ -244,4 +244,11 @@ export const T = {
     'product.sand.per': { en: 'cft', hi: 'सीएफ़टी' },
     'product.gitti.per': { en: 'cft', hi: 'सीएफ़टी' },
     'product.bricks.per': { en: 'piece', hi: 'नग' },
+        // ---------- Product detail page ----------
+    'detail.back': { en: 'Back to products', hi: 'प्रोडक्ट्स पर वापस' },
+    'detail.notFound': { en: 'Product not found.', hi: 'प्रोडक्ट नहीं मिला।' },
+    'detail.approx': { en: 'Indicative price. Final rate comes from the supplier.', hi: 'अनुमानित कीमत। अंतिम रेट सप्लायर बताएगा।' },
+    'detail.supplier': { en: 'Supplier', hi: 'सप्लायर' },
+    'detail.supplierName': { en: 'NEEV Verified Supplier', hi: 'नींव वेरिफ़ाइड सप्लायर' },
+    'detail.total': { en: 'Estimated total', hi: 'अनुमानित कुल' },
 }

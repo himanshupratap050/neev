@@ -49,7 +49,8 @@ export default function PostRequirement() {
             return PRODUCTS.filter((p) => items[p.id]).map((p) => ({ id: p.id, qty: String(items[p.id]) }))
         }
         const single = PRODUCTS.find((p) => p.id === params.get('product'))
-        return single ? [{ id: single.id, qty: '1' }] : []
+        const q = Math.floor(Number(params.get('qty')))
+        return single ? [{ id: single.id, qty: String(q >= 1 ? q : 1) }] : []
     })
     const cartMode = lines.length > 0
 
