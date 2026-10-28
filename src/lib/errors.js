@@ -40,11 +40,24 @@ export function friendlyError(error) {
     if (has('requests_title_chk')) return 'The title must be between 3 and 120 characters.'
     if (has('quotes_price_chk')) return 'Please enter a valid price.'
 
+    // Text length limits (schema_fixes.sql)
+    if (has('quotes_message_chk') || has('reviews_comment_chk')) {
+        return 'Your message is too long (maximum 500 characters).'
+    }
+    if (has('requests_details_chk')) return 'Details are too long (maximum 2000 characters).'
+    if (has('provider_products_name_chk')) return 'Product name must be 2 to 80 characters.'
+    if (has('provider_products_price_chk')) return 'Please enter a valid price.'
+    if (has('provider_products_desc_chk')) return 'Description is too long (maximum 500 characters).'
+
     // Duplicates (unique rules)
     if (has('quotes_one_per_provider')) return 'You have already sent a quote for this requirement.'
     if (has('reviews_one_per_request')) return 'You have already reviewed this job.'
 
     // Guards (schema.sql Module 4 and 6)
+    // This one must stay ABOVE the general guard line below.
+    if (has('while it has no quotes')) {
+        return 'Quotes have already arrived, so this requirement can no longer be edited.'
+    }
     if (has('invalid status change') || has('edited only while')
         || has('not found or request is not open')) {
         return 'This requirement has changed. Please refresh the page and try again.'
@@ -61,10 +74,14 @@ export function friendlyError(error) {
 
     // Authentication
     if (has('invalid login credentials')) return 'Incorrect email or password.'
+    if (has('email not confirmed')) return 'Please confirm your email first, or turn off "Confirm email" in Supabase.'
     if (has('user already registered')) return 'An account with this email already exists. Please log in.'
     if (has('password should be at least')) return 'Your password must have at least 6 characters.'
     if (has('unable to validate email') || has('invalid email')) return 'Please enter a valid email address.'
     if (has('rate limit')) return 'Too many attempts. Please wait a minute and try again.'
+    if (has('database error saving new user')) {
+        return 'Could not create your account. Please check your details and try again.'
+    }
 
     // Network
     if (has('failed to fetch') || has('network')) {

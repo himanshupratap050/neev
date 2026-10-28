@@ -56,8 +56,7 @@ function QuoteForm({ requestId, providerId, onSent }) {
     return (
         <form onSubmit={submit} className="mt-3 space-y-2 border-t border-slate-100 pt-3">
             <Input type="number" min="1" placeholder="Your price (₹)" value={price} onChange={(e) => setPrice(e.target.value)} required />
-            <Input placeholder="Note: delivery time, what is included" value={message} onChange={(e) => setMessage(e.target.value)} />
-            {error && <p className="text-sm text-red-600">{error}</p>}
+            <Input maxLength={500} placeholder="Note: delivery time, what is included" value={message} onChange={(e) => setMessage(e.target.value)} />            {error && <p className="text-sm text-red-600">{error}</p>}
             <Button disabled={busy}>{busy ? 'Sending...' : 'Send quote'}</Button>
         </form>
     )

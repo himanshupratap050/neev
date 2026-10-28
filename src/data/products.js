@@ -16,5 +16,5 @@ export const PRODUCTS = [
     { id: 'tmt', price: 62, category: 'TMT / Steel', color: 'bg-orange-100', emoji: '🏗️', image: '/images/tmt.webp' },
     { id: 'sand', price: 45, category: 'Sand', color: 'bg-amber-100', emoji: '🏖️', image: '/images/sand.webp' },
     { id: 'gitti', price: 40, category: 'Gitti / Aggregate', color: 'bg-sky-100', emoji: '🪨', image: '/images/gitti.webp' },
-    { id: 'bricks', price: 8, category: 'Bricks', color: 'bg-red-100', emoji: '🧱', image: '/images/redbricks.webp' }, // add /images/bricks.webp, then set image
+    { id: 'bricks', price: 8, category: 'Bricks', color: 'bg-red-100', emoji: '🧱', image: '/images/redbricks.webp' }, 
 ]

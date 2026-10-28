@@ -60,7 +60,7 @@ function ReviewForm({ requestId, providerId, onDone }) {
                     </button>
                 ))}
             </div>
-            <Input placeholder="Share your experience (optional)" value={comment} onChange={(e) => setComment(e.target.value)} />
+            <Input maxLength={500} placeholder="Share your experience (optional)" value={comment} onChange={(e) => setComment(e.target.value)} />
             {error && <p className="text-sm text-red-600">{error}</p>}
             <Button disabled={busy}>{busy ? 'Submitting...' : 'Submit review'}</Button>
         </form>

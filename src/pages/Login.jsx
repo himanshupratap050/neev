@@ -1,10 +1,20 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
+import { useAuth } from '../context/AuthContext'
+import { friendlyError } from '../lib/errors'
 import { Page, Card, Input, Button, Field } from '../components/ui'
+
+// After login, where each role should land
+const HOME_FOR_ROLE = {
+    admin: '/admin',        // admin panel
+    provider: '/provider',     // provider dashboard
+    customer: '/',          // home page: browse products and order
+}
 
 export default function Login() {
     const navigate = useNavigate()
+    const { reloadProfile } = useAuth()
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
     const [error, setError] = useState('')
@@ -14,10 +24,24 @@ export default function Login() {
         e.preventDefault()
         setError('')
         setBusy(true)
-        const { error } = await supabase.auth.signInWithPassword({ email, password })
+
+        const { data, error } = await supabase.auth.signInWithPassword({
+            email: email.trim(), password,
+        })
+        if (error) {
+            console.error('Login error:', error) // DEBUG: F12 -> Console shows the real reason
+            setError(friendlyError(error))
+            setBusy(false)
+            return
+        }
+
+        // Load the profile first, so the role is known before we leave this page
+        await reloadProfile()
+        const { data: prof } = await supabase
+            .from('profiles').select('role').eq('id', data.user.id).maybeSingle()
+
         setBusy(false)
-        if (error) { setError('Incorrect email or password.'); return }
-        navigate('/')
+        navigate(HOME_FOR_ROLE[prof?.role] ?? '/')
     }
 
     return (

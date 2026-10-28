@@ -3,16 +3,16 @@
  * ---------------------------------------------------------------
  * Purpose : Creates an account for a customer or a provider.
  * Route   : /signup (public)
- * Tables  : profiles (insert), providers (insert, providers only)
- * Auth    : supabase.auth.signUp (email + password)
- * Flow    : validate -> create auth user -> insert profile
- *           -> (provider) insert provider row -> reload profile -> Home
+ * Auth    : supabase.auth.signUp (email + password + metadata)
+ * Flow    : validate -> signUp with metadata -> database trigger
+ *           handle_new_user() creates the profile (and the provider row)
+ *           -> reload profile -> Home
  *
  * DEBUG: "Email confirmation is still enabled" = turn off
  *        Authentication -> Sign In / Providers -> Email -> Confirm email.
- *        Half-created user (login works, no profile) = profile insert
- *        failed after signUp. Validation below prevents most causes;
- *        the profile trigger planned next removes the risk completely.
+ *        "Could not create your account" = the trigger rejected the data
+ *        (bad phone, pincode or missing category). Check the trigger
+ *        handle_new_user in Supabase.
  */
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
@@ -56,9 +56,22 @@ export default function Signup() {
 
         setBusy(true)
 
-        // Step 1: create the login account
+        // Step 1: create the account. The database trigger creates the
+        // profile (and the provider row) from this metadata in the same step.
         const { data, error: authErr } = await supabase.auth.signUp({
-            email: form.email.trim(), password: form.password,
+            email: form.email.trim(),
+            password: form.password,
+            options: {
+                data: {
+                    role: form.role,
+                    name: form.name.trim(),
+                    phone: form.phone.trim(),
+                    city: form.city.trim(),
+                    shop_name: form.shop_name.trim(),
+                    category: form.category,
+                    pincode: form.pincode.trim(),
+                },
+            },
         })
         if (authErr) { setError(friendlyError(authErr)); setBusy(false); return }
         if (!data.session) {
@@ -66,23 +79,7 @@ export default function Signup() {
             setBusy(false); return
         }
 
-        // Step 2: save the profile (name, phone, city, role)
-        const uid = data.user.id
-        const { error: pErr } = await supabase.from('profiles').insert({
-            id: uid, name: form.name.trim(), phone: form.phone.trim(),
-            city: form.city.trim(), role: form.role,
-        })
-        if (pErr) { setError(friendlyError(pErr)); setBusy(false); return }
-
-        // Step 3 (providers only): save the business details
-        if (form.role === 'provider') {
-            const { error: prErr } = await supabase.from('providers').insert({
-                id: uid, shop_name: form.shop_name.trim(), category: form.category,
-                city: form.city.trim(), pincode: form.pincode.trim(),
-            })
-            if (prErr) { setError(friendlyError(prErr)); setBusy(false); return }
-        }
-
+        // Step 2: load the profile the trigger just created
         await reloadProfile()
         setBusy(false)
         navigate('/')
