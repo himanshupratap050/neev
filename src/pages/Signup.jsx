@@ -22,7 +22,7 @@ import { useAuth } from '../context/AuthContext'
 import { friendlyError, isValidPhone, isValidPincode } from '../lib/errors'
 import { Page, Card, Input, Select, Button, Field } from '../components/ui'
 
-const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Aggregate']
+const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Aggregate', 'Bricks']
 
 export default function Signup() {
     const navigate = useNavigate()

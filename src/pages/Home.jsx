@@ -5,6 +5,7 @@
  * All text comes from i18n/translations.js via t('key').
  */
 import { useEffect, useState } from 'react'
+import ProductCard from '../components/ProductCard'
 import { Link, Navigate } from 'react-router-dom'
 import { PRODUCTS } from '../data/products'
 import { useAuth } from '../context/AuthContext'
@@ -101,31 +102,43 @@ function Hero() {
     )
 }
 
-export function Products() {
+// Category chips under the hero: click -> Product List filtered by that category
+function Categories() {
     const { t } = useLang()
-    const { items, add } = useCart()
     return (
-        <section id="products" className="mx-auto max-w-7xl scroll-mt-20 px-4 pt-14">
-            <h2 className="text-2xl font-bold">{t('products.title')}</h2>
-            <p className="text-muted">{t('products.subtitle')}</p>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <section className="mx-auto max-w-7xl px-4 pt-8">
+            <div className="grid grid-cols-3 gap-3 md:grid-cols-5">
                 {PRODUCTS.map(p => (
-                    <div key={p.id} className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                        {/* phots addition for the same  */}
-                        <div className={`flex h-32 items-center justify-center text-5xl ${p.color}`}>{p.image ? <img src={p.image} alt={t(`product.${p.id}.name`)} className="h-full w-full object-cover" /> : p.emoji}</div>
-                        <div className="p-4">
-                            <h3 className="font-semibold">{t(`product.${p.id}.name`)}</h3>
-                            <p className="text-sm text-muted">{t(`product.${p.id}.hint`)}</p>
-                            <div className="mt-3 flex gap-2">
-                                <button onClick={() => add(p.id)} className="flex-1 rounded-lg bg-slate-brand py-2 text-sm font-semibold text-white">
-                                    {items[p.id] ? `${t('product.inCart')} (${items[p.id]})` : t('product.add')}
-                                </button>
-                                <Link to={`/post?product=${p.id}`} className="flex-1 rounded-lg bg-amber-brand py-2 text-center text-sm font-semibold text-white">{t('product.quote')}</Link>
-                            </div>
-                        </div>
-                    </div>
+                    <Link key={p.id} to={`/products?cat=${p.id}`} className={`flex flex-col items-center rounded-2xl p-4 text-center font-semibold ${p.color} hover:shadow-md`}>
+                        <span className="text-3xl">{p.emoji}</span><span className="mt-1 text-sm">{t(`cat.${p.id}`)}</span>
+                    </Link>
                 ))}
             </div>
+        </section>
+    )
+}
+
+// Offers strip: three short promises (text in translations.js)
+function Offers() {
+    const { t } = useLang()
+    return (
+        <section className="mx-auto max-w-7xl px-4 pt-6">
+            <div className="grid gap-3 md:grid-cols-3">
+                {['1', '2', '3'].map(n => <div key={n} className="rounded-2xl border border-amber-200 bg-amber-50 p-4 text-sm font-semibold text-slate-brand">🎁 {t(`offer.${n}`)}</div>)}
+            </div>
+        </section>
+    )
+}
+
+export function Products() {
+    const { t } = useLang()
+    return (
+        <section id="products" className="mx-auto max-w-7xl scroll-mt-20 px-4 pt-14">
+            <div className="flex items-end justify-between">
+                <div><h2 className="text-2xl font-bold">{t('products.title')}</h2><p className="text-muted">{t('products.subtitle')}</p></div>
+                <Link to="/products" className="text-sm font-semibold text-blue-brand">{t('products.viewAll')} →</Link>
+            </div>
+            <div className="mt-6 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">{ PRODUCTS.map(p => <ProductCard key={p.id} p={p} />) }</div>
             {/* Fabrication strip: gates, grills, railings, sheds */}
             <div className="mt-6 flex flex-col items-center justify-between gap-3 rounded-2xl bg-blue-brand p-6 text-white md:flex-row">
                 <div><h3 className="text-lg font-bold">{t('fab.title')}</h3><p className="text-sm">{t('fab.body')}</p></div>
@@ -212,5 +225,5 @@ export default function Home() {
     // Providers have their own dashboard, so they never see the customer home page
     const { profile } = useAuth()
     if (profile?.role === 'provider') return <Navigate to="/leads" replace />
-    return (<><Hero /><Products /><Tools /><Trust /><Faq /><ProviderBanner /></>)
+    return (<><Hero /><Categories /><Offers /><Products /><Tools /><Trust /><Faq /><ProviderBanner /></>)
 }

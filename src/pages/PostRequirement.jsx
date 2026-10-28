@@ -31,7 +31,7 @@ import { T } from '../i18n/translations'
 import { friendlyError, isValidPincode, checkPhoto } from '../lib/errors'
 import { Page, Card, Input, Textarea, Select, Button, Field } from '../components/ui'
 
-const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Aggregate']
+const CATEGORIES = ['Fabrication', 'Cement', 'TMT / Steel', 'Sand', 'Gitti / Aggregate', 'Bricks']
 const en = (key) => T[key]?.en ?? key // database always stores English text
 
 export default function PostRequirement() {

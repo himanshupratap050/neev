@@ -1,8 +1,8 @@
 /** Full pages opened from the navbar. Each one reuses a section from Home.jsx. */
-import { Products, Tools, Trust, Faq } from './Home'
+import { Tools, Trust, Faq } from './Home'
 import { useLang } from '../context/LangContext'
 
-export const ProductsPage = () => <div className="min-h-[70vh]"><Products /></div>
+export { default as ProductsPage } from './ProductList'
 export const ToolsPage = () => <div className="min-h-[70vh]"><Tools /></div>
 export const FaqPage = () => <div className="min-h-[70vh]"><Faq /></div>
 

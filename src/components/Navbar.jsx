@@ -17,6 +17,8 @@ export default function Navbar() {
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
+    const [q, setQ] = useState('') // search text
+    const goSearch = e => { if (e.key === 'Enter') { navigate('/products?q=' + encodeURIComponent(q)); setMenu(false) } }
     const [menu, setMenu] = useState(false) // mobile hamburger panel
     // Pages opened by the header links
     const NAV = [['/products', 'nav.products'], ['/tools', 'nav.tools'], ['/about', 'nav.about'], ['/faq', 'nav.faq']]
@@ -44,7 +46,6 @@ export default function Navbar() {
                 {/* LEFT: logo */}
                 <Link to="/" className="shrink-0 text-xl font-bold">
                     <span className="text-amber-brand">NEEV</span>
-                    <span className="ml-2 text-sm font-medium text-slate-300">नींव</span>
                 </Link>
 
                 {/* MIDDLE: anchor links that scroll to Home sections */}
@@ -52,10 +53,10 @@ export default function Navbar() {
                     {NAV.map(([to, k]) => <Link key={to} to={to} className="hover:text-white">{t(k)}</Link>)}
                 </nav>
 
-                {/* SEARCH: visual only for now (site-wide search logic comes next) */}
+                {/* SEARCH: press Enter -> opens /products?q=<text> (filtering is done in ProductList.jsx) */}
                 <div className="relative hidden flex-1 md:block">
                     <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-                    <input placeholder={t('nav.search')}
+                    <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={goSearch} placeholder={t('nav.search')}
                         className="w-full rounded-full bg-slate-800 py-2 pl-9 pr-4 text-sm outline-none placeholder:text-slate-400 focus:ring-2 focus:ring-amber-brand" />
                 </div>
 
@@ -94,7 +95,7 @@ export default function Navbar() {
             {/* MOBILE / TABLET MENU: same links + search, opened by the hamburger */}
             {menu && (
                 <div className="space-y-1 border-t border-slate-700 px-4 py-3 lg:hidden">
-                    <input placeholder={t('nav.search')} className="mb-2 w-full rounded-full bg-slate-800 px-4 py-2 text-sm outline-none" />
+                    <input value={q} onChange={e => setQ(e.target.value)} onKeyDown={goSearch} placeholder={t('nav.search')} className="mb-2 w-full rounded-full bg-slate-800 px-4 py-2 text-sm outline-none" />
                     {NAV.map(([to, k]) => <Link key={to} to={to} onClick={() => setMenu(false)} className="block rounded-xl px-3 py-2.5 font-semibold hover:bg-slate-800">{t(k)}</Link>)}
                     <Link to="/post" onClick={() => setMenu(false)} className="block rounded-xl bg-amber-brand px-3 py-2.5 text-center font-semibold">{t('nav.post')}</Link>
                 </div>
