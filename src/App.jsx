@@ -20,6 +20,7 @@ import Cart from './pages/Cart'
 import { ProductsPage, ToolsPage, AboutPage, FaqPage } from './pages/InfoPages'
 import Footer from './components/Footer'                 // bottom footer
 import ProtectedRoute from './components/ProtectedRoute' // login + role guard
+import CartDrawer from './components/CartDrawer'       // slide-in cart
 
 // ---- Public pages (no login needed) ----
 import Home from './pages/Home'
@@ -39,7 +40,7 @@ import Admin from './pages/Admin'                      // verify providers
 
 // Customer layout: navbar on top, page in the middle, footer at the bottom
 function CustomerShell() {
-    return (<><Navbar /><main><Outlet /></main><Footer /></>)
+    return (<><Navbar /><main><Outlet /></main><Footer /><CartDrawer /></>)
 }
 
 export default function App() {

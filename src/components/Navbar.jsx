@@ -13,7 +13,7 @@ import { supabase } from '../lib/supabase'
 export default function Navbar() {
     const { user, profile } = useAuth()
     const { t, lang, toggle } = useLang()
-    const { count } = useCart()
+    const { count, openDrawer } = useCart()
     const navigate = useNavigate()
     const [open, setOpen] = useState(false)
     const ref = useRef(null)
@@ -65,7 +65,7 @@ export default function Navbar() {
                     <button onClick={toggle} className="flex items-center gap-1 text-sm font-semibold">
                         <Globe className="h-5 w-5" />{lang === 'en' ? 'हिंदी' : 'EN'}
                     </button>
-                    <Link to="/cart" className="relative" aria-label={t('nav.cart')}>
+                    <Link to="/cart" onClick={(e) => { e.preventDefault(); openDrawer() }} className="relative" aria-label={t('nav.cart')}>
                         <ShoppingCart className="h-6 w-6" />
                         {count > 0 && <span className="absolute -right-2 -top-2 rounded-full bg-amber-brand px-1.5 text-xs font-bold">{count}</span>}
                     </Link>

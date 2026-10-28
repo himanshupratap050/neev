@@ -1,12 +1,17 @@
 /**
- * products.js: product list shown on Home + Products page.
- * TO ADD PHOTOS: put the file in /public/images/ (e.g. cement.jpg) and set image: '/images/cement.jpg'
- * If image is '' the emoji + color box is shown instead.
- * The text (name/hint) comes from i18n/translations.js using the id: product.<id>.name
+ * products.js: PRODUCT CATALOG (static)
+ * ---------------------------------------------------------------
+ * Purpose : Products shown on Home, Products page, cart and drawer.
+ * Fields  : id        key used in the cart and in translations
+ *           category  value saved in requests.category (must match
+ *                     the provider categories exactly)
+ *           image     file in /public/images (emoji + color is the fallback)
+ * Text    : name, hint and unit come from i18n/translations.js
+ *           (product.<id>.name / .hint / .unit)
  */
 export const PRODUCTS = [
-    { id: 'cement', color: 'bg-slate-200', emoji: '🧱', image: '/images/cement.webp' },
-    { id: 'tmt', color: 'bg-orange-100', emoji: '🏗️', image: '/images/tmt.webp' },
-    { id: 'sand', color: 'bg-amber-100', emoji: '🏖️', image: '/images/sand.webp' },
-    { id: 'gitti', color: 'bg-sky-100', emoji: '🪨', image: '/images/gitti.webp' },
+    { id: 'cement', category: 'Cement', color: 'bg-slate-200', emoji: '🧱', image: '/images/cement.webp' },
+    { id: 'tmt', category: 'TMT / Steel', color: 'bg-orange-100', emoji: '🏗️', image: '/images/tmt.webp' },
+    { id: 'sand', category: 'Sand', color: 'bg-amber-100', emoji: '🏖️', image: '/images/sand.webp' },
+    { id: 'gitti', category: 'Gitti / Aggregate', color: 'bg-sky-100', emoji: '🪨', image: '/images/gitti.webp' },
 ]

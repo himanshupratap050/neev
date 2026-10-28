@@ -118,9 +118,9 @@ export function Products() {
                             <p className="text-sm text-muted">{t(`product.${p.id}.hint`)}</p>
                             <div className="mt-3 flex gap-2">
                                 <button onClick={() => add(p.id)} className="flex-1 rounded-lg bg-slate-brand py-2 text-sm font-semibold text-white">
-                                    {items[p.id] ? t('product.inCart') : t('product.add')}
+                                    {items[p.id] ? `${t('product.inCart')} (${items[p.id]})` : t('product.add')}
                                 </button>
-                                <Link to="/post" className="flex-1 rounded-lg bg-amber-brand py-2 text-center text-sm font-semibold text-white">{t('product.quote')}</Link>
+                                <Link to={`/post?product=${p.id}`} className="flex-1 rounded-lg bg-amber-brand py-2 text-center text-sm font-semibold text-white">{t('product.quote')}</Link>
                             </div>
                         </div>
                     </div>
